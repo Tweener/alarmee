@@ -107,6 +107,28 @@ class AlarmeeSchedulerAndroid(
         }
     }
 
+    fun sendNotificationNow(uuid: String, title: String, body: String, channelId: String, priority: Int, iconResId: Int, iconColor: Int) {
+        val notification = NotificationCompat.Builder(context, channelId)
+            .apply {
+                setSmallIcon(iconResId)
+                setContentTitle(title)
+                setContentText(body)
+                setPriority(priority)
+                setColor(iconColor)
+                setAutoCancel(true)
+                setContentIntent(getPendingIntent(context = context, uuid = uuid, title = title, body = body, channelId = channelId, priority = priority, iconResId = iconResId, iconColor = iconColor)) // Handles click on notification
+            }
+            .build()
+
+        context.getNotificationManager()?.let { notificationManager ->
+            if (notificationManager.areNotificationsEnabled()) {
+                notificationManager.notify(uuid.hashCode(), notification)
+            } else {
+                println("Notifications permission is not granted! Can't show the notification.")
+            }
+        }
+    }
+
     private fun createNotificationChannels(context: Context) {
         // Create a notification channel for Android O and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -158,6 +180,28 @@ class AlarmeeSchedulerAndroid(
         return PendingIntent.getBroadcast(
             context,
             alarmee.uuid.hashCode(),
+            receiverIntent,
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    private fun getPendingIntent(context: Context, uuid: String, title: String, body: String, channelId: String, priority: Int, iconResId: Int, iconColor: Int): PendingIntent {
+        // Create the receiver intent with the alarm parameters
+        val receiverIntent = Intent(context, NotificationBroadcastReceiver::class.java).apply {
+            action = NotificationBroadcastReceiver.ALARM_ACTION
+            putExtra(NotificationBroadcastReceiver.KEY_UUID, uuid)
+            putExtra(NotificationBroadcastReceiver.KEY_TITLE, title)
+            putExtra(NotificationBroadcastReceiver.KEY_BODY, body)
+            putExtra(NotificationBroadcastReceiver.KEY_PRIORITY, priority)
+            putExtra(NotificationBroadcastReceiver.KEY_CHANNEL_ID, channelId)
+            putExtra(NotificationBroadcastReceiver.KEY_ICON_RES_ID, iconResId)
+            putExtra(NotificationBroadcastReceiver.KEY_ICON_COLOR, iconColor)
+        }
+
+        // Create the broadcast pending intent
+        return PendingIntent.getBroadcast(
+            context,
+            uuid.hashCode(),
             receiverIntent,
             PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )

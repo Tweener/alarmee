@@ -76,6 +76,8 @@ abstract class AlarmeeScheduler {
 
     internal abstract fun cancelAlarm(uuid: String)
 
+    abstract fun sendNotificationNow(uuid: String, title: String, body: String, channelId: String, priority: Int, iconResId: Int, iconColor: Int)
+
     private fun validateAlarmee(alarmee: Alarmee) {
         if (alarmee.repeatInterval is RepeatInterval.Custom) {
             require(alarmee.repeatInterval.duration.isPositive()) { "Custom repeat interval duration must be greater than zero." }

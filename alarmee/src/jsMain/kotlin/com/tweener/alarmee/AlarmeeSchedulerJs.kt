@@ -32,4 +32,31 @@ class AlarmeeSchedulerJs(
     override fun cancelAlarm(uuid: String) {
         TODO("Not yet implemented")
     }
+
+    override fun sendNotificationNow(uuid: String, title: String, body: String, channelId: String, priority: Int, iconResId: Int, iconColor: Int) {
+        if (!("Notification" in js("window"))) {
+            println("This browser does not support notifications.")
+            return
+        }
+
+        if (js("Notification.permission") !== "granted") {
+            js("Notification.requestPermission()").then { permission ->
+                if (permission === "granted") {
+                    showNotification(uuid, title, body, iconResId)
+                } else {
+                    println("Notifications permission is not granted! Can't show the notification.")
+                }
+            }
+        } else {
+            showNotification(uuid, title, body, iconResId)
+        }
+    }
+
+    private fun showNotification(uuid: String, title: String, body: String, iconResId: Int) {
+        val options = js("{}")
+        options.body = body
+        options.icon = iconResId
+
+        js("new Notification(title, options)")
+    }
 }

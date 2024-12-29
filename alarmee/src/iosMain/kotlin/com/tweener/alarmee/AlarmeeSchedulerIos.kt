@@ -14,7 +14,6 @@ import platform.Foundation.NSCalendarUnitHour
 import platform.Foundation.NSCalendarUnitMinute
 import platform.Foundation.NSCalendarUnitMonth
 import platform.Foundation.NSCalendarUnitSecond
-import platform.Foundation.NSCalendarUnitYear
 import platform.Foundation.NSDate
 import platform.Foundation.NSDateComponents
 import platform.Foundation.dateWithTimeIntervalSince1970
@@ -111,6 +110,31 @@ class AlarmeeSchedulerIos(
     override fun cancelAlarm(uuid: String) {
         val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
         notificationCenter.removePendingNotificationRequestsWithIdentifiers(identifiers = listOf(uuid, getFirstRepeatingNotificationUuid(uuid = uuid)))
+    }
+
+    override fun sendNotificationNow(uuid: String, title: String, body: String, channelId: String, priority: Int, iconResId: Int, iconColor: Int) {
+        val content = UNMutableNotificationContent().apply {
+            setTitle(title)
+            setBody(body)
+        }
+
+        val trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(1.0, repeats = false)
+
+        val request = UNNotificationRequest.requestWithIdentifier(identifier = uuid, content = content, trigger = trigger)
+
+        val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
+        notificationCenter.requestAuthorizationWithOptions(options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge) { granted, authorizationError ->
+            if (granted) {
+                // Schedule the notification
+                notificationCenter.addNotificationRequest(request) { requestError ->
+                    if (requestError != null) {
+                        println("Scheduling notification on iOS failed with error: $requestError")
+                    }
+                }
+            } else if (authorizationError != null) {
+                println("Error requesting notification permission: $authorizationError")
+            }
+        }
     }
 
     private fun configureNotification(uuid: String, alarmee: Alarmee, notificationTrigger: UNNotificationTrigger, onSuccess: () -> Unit) {
