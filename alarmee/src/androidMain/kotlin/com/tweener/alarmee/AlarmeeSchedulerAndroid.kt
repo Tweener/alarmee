@@ -52,7 +52,7 @@ class AlarmeeSchedulerAndroid(
 
         // Schedule the alarm
         context.getAlarmManager()?.let { alarmManager ->
-            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime.toEpochMilliseconds(timeZone = alarmee.timeZone), pendingIntent)
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime!!.toEpochMilliseconds(timeZone = alarmee.timeZone), pendingIntent)
 
             // Notification scheduled successfully
             onSuccess()
@@ -76,7 +76,7 @@ class AlarmeeSchedulerAndroid(
         }
 
         context.getAlarmManager()?.let { alarmManager ->
-            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime.toEpochMilliseconds(timeZone = alarmee.timeZone), intervalMillis, pendingIntent)
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime!!.toEpochMilliseconds(timeZone = alarmee.timeZone), intervalMillis, pendingIntent)
 
             // Notification scheduled successfully
             onSuccess()
@@ -104,6 +104,37 @@ class AlarmeeSchedulerAndroid(
 
             // Notification canceled successfully
             println("Notification with ID '$uuid' canceled.")
+        }
+    }
+
+    override fun pushAlarmee(alarmee: Alarmee, onSuccess: () -> Unit) {
+        createNotificationChannels(context = context)
+        validateNotificationChannelId(alarmee)
+
+        val notification = alarmee.androidNotificationConfiguration.channelId?.let {
+            NotificationCompat.Builder(
+                context,
+                it
+            )
+                .apply {
+                    setSmallIcon(configuration.notificationIconResId)
+                    setContentTitle(alarmee.notificationTitle)
+                    setContentText(alarmee.notificationBody)
+                    setPriority(mapPriority(alarmee.androidNotificationConfiguration.priority))
+                    setAutoCancel(true)
+                }
+                .build()
+        }
+
+        context.getNotificationManager()?.let { notificationManager ->
+            if (notificationManager.areNotificationsEnabled()) {
+                notificationManager.notify(alarmee.uuid.hashCode(), notification)
+
+                // Notification sent
+                onSuccess()
+            } else {
+                println("Notifications permission is not granted! Can't show the notification.")
+            }
         }
     }
 

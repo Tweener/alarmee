@@ -15,7 +15,7 @@ import kotlinx.datetime.TimeZone
  * @property uuid A unique identifier for the alarm.
  * @property notificationTitle The title of the notification that will be displayed when the alarm triggers.
  * @property notificationBody The body of the notification that will be displayed when the alarm triggers.
- * @property scheduledDateTime The specific date and time when the alarm is scheduled to trigger.
+ * @property scheduledDateTime The specific date and time when the alarm is scheduled to trigger. Optional for pushing the notification immediately
  * @property timeZone The time zone in which the alarm should be scheduled. By default, this is set to the system's current time zone.
  * @property repeatInterval The optional interval at which the alarm should repeat (e.g., hourly, daily, weekly). If `null`, the alarm will not repeat.
  * @property androidNotificationConfiguration Configuration specific to Android notifications, including channel ID and priority.
@@ -27,7 +27,7 @@ data class Alarmee(
     val uuid: String,
     val notificationTitle: String,
     val notificationBody: String,
-    val scheduledDateTime: LocalDateTime,
+    val scheduledDateTime: LocalDateTime? = null,
     val timeZone: TimeZone = TimeZone.currentSystemDefault(),
     val repeatInterval: RepeatInterval? = null,
     val androidNotificationConfiguration: AndroidNotificationConfiguration,

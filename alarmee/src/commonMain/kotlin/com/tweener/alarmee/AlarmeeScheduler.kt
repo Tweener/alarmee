@@ -33,7 +33,7 @@ abstract class AlarmeeScheduler {
      * @param alarmee The [Alarmee] object containing the configuration for the alarm.
      */
     fun schedule(alarmee: Alarmee) {
-        validateAlarmee(alarmee = alarmee)
+        validateAlarmee(alarmee = alarmee, schedule = true)
 
         val scheduledDateTime = adjustDateInFuture(alarmee)
         val updatedAlarmee = alarmee.copy(scheduledDateTime = scheduledDateTime)
@@ -61,6 +61,20 @@ abstract class AlarmeeScheduler {
     }
 
     /**
+     * Pushes a notification immediately to the device without scheduling an alarm.
+     *
+     * @param alarmee The [Alarmee] object containing the configuration for the alarm.
+     */
+    fun push(alarmee: Alarmee) {
+        validateAlarmee(alarmee)
+
+        pushAlarmee(alarmee = alarmee) {
+            println("Notification with title '${alarmee.notificationTitle}' successfully sent.")
+        }
+    }
+
+
+    /**
      * Cancels an existing alarm based on its unique identifier.
      * If an alarm with the specified identifier is found, it will be canceled, preventing any future notifications from being triggered for that alarm.
      *
@@ -76,7 +90,18 @@ abstract class AlarmeeScheduler {
 
     internal abstract fun cancelAlarm(uuid: String)
 
-    private fun validateAlarmee(alarmee: Alarmee) {
+    internal abstract fun pushAlarmee(alarmee: Alarmee, onSuccess: () -> Unit)
+
+    private fun validateAlarmee(alarmee: Alarmee, schedule: Boolean = false) {
+
+        if (schedule) {
+            require(alarmee.scheduledDateTime != null) { "scheduledDateTime is required for scheduling alarms." }
+        }
+
+        if (alarmee.repeatInterval != null) {
+            require(alarmee.scheduledDateTime != null) { "scheduledDateTime is required for repeating alarms." }
+        }
+
         if (alarmee.repeatInterval is RepeatInterval.Custom) {
             require(alarmee.repeatInterval.duration.isPositive()) { "Custom repeat interval duration must be greater than zero." }
         }
@@ -93,7 +118,7 @@ abstract class AlarmeeScheduler {
     private fun adjustDateInFuture(alarmee: Alarmee): LocalDateTime {
         val now = LocalDateTime.now(timeZone = alarmee.timeZone)
 
-        return if (alarmee.scheduledDateTime <= now) {
+        return if (alarmee.scheduledDateTime!! <= now) {
             val adjustedDateTime = if (alarmee.repeatInterval == null) {
                 // One-off alarm: adjust to tomorrow
                 now.plus(1, DateTimeUnit.DAY, timeZone = alarmee.timeZone)

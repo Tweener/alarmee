@@ -32,4 +32,8 @@ class AlarmeeSchedulerWasmJs(
     override fun cancelAlarm(uuid: String) {
         TODO("Not yet implemented")
     }
+
+    override fun pushAlarmee(alarmee: Alarmee, onSuccess: () -> Unit) {
+        TODO("Not yet implemented")
+    }
 }

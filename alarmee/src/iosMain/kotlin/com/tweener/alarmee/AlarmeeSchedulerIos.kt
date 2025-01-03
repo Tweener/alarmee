@@ -45,14 +45,14 @@ class AlarmeeSchedulerIos(
 ) : AlarmeeScheduler() {
 
     override fun scheduleAlarm(alarmee: Alarmee, onSuccess: () -> Unit) {
-        val trigger = UNCalendarNotificationTrigger.triggerWithDateMatchingComponents(dateComponents = alarmee.scheduledDateTime.toNSDateComponents(), repeats = false)
+        val trigger = UNCalendarNotificationTrigger.triggerWithDateMatchingComponents(dateComponents = alarmee.scheduledDateTime!!.toNSDateComponents(), repeats = false)
 
         configureNotification(uuid = alarmee.uuid, alarmee = alarmee, notificationTrigger = trigger, onSuccess = onSuccess)
     }
 
     override fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval, onSuccess: () -> Unit) {
         // Schedule the first notification at the start date
-        val firstTrigger = UNCalendarNotificationTrigger.triggerWithDateMatchingComponents(dateComponents = alarmee.scheduledDateTime.toNSDateComponents(), repeats = false)
+        val firstTrigger = UNCalendarNotificationTrigger.triggerWithDateMatchingComponents(dateComponents = alarmee.scheduledDateTime!!.toNSDateComponents(), repeats = false)
 
         // Create a specific uuid for the one-off notification, so it is different from the one for the repeating notification.
         // Two notifications with the same identifier will overwrite each other, therefore, the repeating notification overwrites the one-off notification before the first one has a chance to trigger.
@@ -113,7 +113,18 @@ class AlarmeeSchedulerIos(
         notificationCenter.removePendingNotificationRequestsWithIdentifiers(identifiers = listOf(uuid, getFirstRepeatingNotificationUuid(uuid = uuid)))
     }
 
-    private fun configureNotification(uuid: String, alarmee: Alarmee, notificationTrigger: UNNotificationTrigger, onSuccess: () -> Unit) {
+    override fun pushAlarmee(alarmee: Alarmee, onSuccess: () -> Unit) {
+        val trigger = null
+
+        configureNotification(
+            uuid = alarmee.uuid,
+            alarmee = alarmee,
+            notificationTrigger = trigger,
+            onSuccess = onSuccess
+        )
+    }
+
+    private fun configureNotification(uuid: String, alarmee: Alarmee, notificationTrigger: UNNotificationTrigger?, onSuccess: () -> Unit) {
         val content = UNMutableNotificationContent().apply {
             setTitle(alarmee.notificationTitle)
             setBody(alarmee.notificationBody)
