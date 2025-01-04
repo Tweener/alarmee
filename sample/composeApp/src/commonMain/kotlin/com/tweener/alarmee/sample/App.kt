@@ -25,10 +25,13 @@ import com.tweener.alarmee.rememberAlarmeeScheduler
 import com.tweener.alarmee.sample.ui.theme.AlarmeeTheme
 import com.tweener.kmpkit.kotlinextensions.fromEpochMilliseconds
 import com.tweener.kmpkit.kotlinextensions.now
+import com.tweener.kmpkit.kotlinextensions.plus
 import com.tweener.kmpkit.kotlinextensions.toEpochMilliseconds
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun App() {
@@ -60,13 +63,15 @@ fun App() {
                 }) { Text("Set a one-off Alarmee") }
 
                 Button(onClick = {
+                    val now = LocalDateTime.now().plus(10, DateTimeUnit.SECOND)
+
                     alarmeeScheduler.schedule(
                         alarmee = Alarmee(
                             uuid = "myRepeatingAlarmId",
                             notificationTitle = "🔁 Congratulations! You've schedule a daily repeating Alarmee!",
                             notificationBody = "This notification will be displayed on December 26th, 2024, at 09:36 and will repeat every day at 09:36.",
-                            scheduledDateTime = LocalDateTime(year = 2024, month = Month.DECEMBER, dayOfMonth = 26, hour = 9, minute = 36),
-                            repeatInterval = RepeatInterval.Daily,
+                            scheduledDateTime = now,
+                            repeatInterval = RepeatInterval.Custom(duration = 20.seconds),
                             androidNotificationConfiguration = AndroidNotificationConfiguration(
                                 priority = AndroidNotificationPriority.HIGH,
                                 channelId = "breakingNewsChannelId",

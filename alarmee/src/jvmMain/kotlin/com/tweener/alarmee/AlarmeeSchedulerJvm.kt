@@ -2,8 +2,8 @@ package com.tweener.alarmee
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 import com.tweener.alarmee.configuration.AlarmeeJvmPlatformConfiguration
+import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 
 /**
  * @author Vivien Mahe
@@ -21,11 +21,11 @@ class AlarmeeSchedulerJvm(
     private val configuration: AlarmeeJvmPlatformConfiguration = AlarmeeJvmPlatformConfiguration,
 ) : AlarmeeScheduler() {
 
-    override fun scheduleAlarm(alarmee: Alarmee, onSuccess: () -> Unit) {
+    override fun scheduleAlarm(alarmee: Alarmee) {
         TODO("Not yet implemented")
     }
 
-    override fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval, onSuccess: () -> Unit) {
+    override fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval) {
         TODO("Not yet implemented")
     }
 

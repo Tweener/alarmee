@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.dokka).apply(false)
     alias(libs.plugins.nexus.sonatype)
     alias(libs.plugins.dependency.versions) // ./gradlew dependencyUpdates
+    alias(libs.plugins.kotlin.serialization).apply(false)
 }
 
 nexusPublishing {

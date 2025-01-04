@@ -21,11 +21,11 @@ class AlarmeeSchedulerJs(
     private val configuration: AlarmeeJsPlatformConfiguration = AlarmeeJsPlatformConfiguration,
 ) : AlarmeeScheduler() {
 
-    override fun scheduleAlarm(alarmee: Alarmee, onSuccess: () -> Unit) {
+    override fun scheduleAlarm(alarmee: Alarmee) {
         TODO("Not yet implemented")
     }
 
-    override fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval, onSuccess: () -> Unit) {
+    override fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval) {
         TODO("Not yet implemented")
     }
 

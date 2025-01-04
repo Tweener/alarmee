@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.compose)
     alias(libs.plugins.jetbrains.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dokka)
     id("maven-publish")
     id("signing")
@@ -80,13 +81,17 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.tweener.kmpkit)
-
-            // Coroutines
-            implementation(libs.kotlin.coroutines.core)
-
-            // Compose
             implementation(compose.foundation)
+            implementation(libs.tweener.kmpkit)
+            implementation(libs.kotlin.coroutines.core)
+            implementation(libs.kotlin.serialization.json)
+            implementation(libs.bundles.multiplaform.settings)
+            implementation(libs.koin.core)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.android.preferences)
+            implementation(libs.android.startup)
         }
     }
 }

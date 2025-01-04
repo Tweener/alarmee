@@ -6,15 +6,22 @@ nexusSonatype = "2.0.0"
 dokka = "1.9.20"
 coroutines = "1.9.0"
 composeMultiplatform = "1.7.1"
+multiplatformSettings = "1.1.1"
+kotlinSerializationPlugin = "2.1.0"
+kotlinSerializationJson = "1.7.3"
+koin = "4.0.0"
 
 # Tweener
-tweenerKmpKit = "0.1.1"
+tweenerKmpKit = "0.1.2"
 
 # Android
 androidActivity = "1.9.3"
+androidPreferences = "1.2.1"
+androidStartup = "1.2.0"
 
 [libraries]
 compose-multiplatform-material3 = { group = "org.jetbrains.compose.material3", name = "material3", version.ref = "composeMultiplatform" }
+kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerializationJson" }
 
 # Tweener
 tweener-kmpkit = { group = "io.github.tweener", name = "kmpkit", version.ref = "tweenerKmpKit" }
@@ -25,6 +32,20 @@ kotlin-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coro
 # Android
 android-activity = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidActivity" }
 android-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidActivity" }
+android-preferences = { group = "androidx.preference", name = "preference-ktx", version.ref = "androidPreferences" }
+android-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidStartup" }
+
+# Multiplatform settings
+multiplaform-settings-core = { group = "com.russhwolf", name = "multiplatform-settings", version.ref = "multiplatformSettings" }
+multiplaform-settings-coroutines = { group = "com.russhwolf", name = "multiplatform-settings-coroutines", version.ref = "multiplatformSettings" }
+
+# Koin
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+
+[bundles]
+multiplaform-settings = ["multiplaform-settings-core", "multiplaform-settings-coroutines"]
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -35,3 +56,4 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 nexus-sonatype = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusSonatype" }
 jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 jetbrains-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerializationPlugin" }

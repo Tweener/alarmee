@@ -1,11 +1,20 @@
 package com.tweener.alarmee
 
 import androidx.compose.runtime.Composable
+import com.russhwolf.settings.Settings
 import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
+import com.tweener.kmpkit.kotlinextensions.ignoreNanoSeconds
 import com.tweener.kmpkit.kotlinextensions.now
 import com.tweener.kmpkit.kotlinextensions.plus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.Json
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
@@ -27,6 +36,8 @@ expect fun rememberAlarmeeScheduler(platformConfiguration: AlarmeePlatformConfig
  */
 abstract class AlarmeeScheduler {
 
+    private val scope = CoroutineScope(Dispatchers.Default)
+
     /**
      * Schedules an alarm to be triggered at a specific time of the day. When the alarm is triggered, a notification will be displayed.
      *
@@ -38,25 +49,32 @@ abstract class AlarmeeScheduler {
         val scheduledDateTime = adjustDateInFuture(alarmee)
         val updatedAlarmee = alarmee.copy(scheduledDateTime = scheduledDateTime)
 
+        // Schedule alarm
+        scheduleAlarm(alarmee = updatedAlarmee)
+
         updatedAlarmee.repeatInterval
             ?.let { repeatInterval ->
-                scheduleRepeatingAlarm(alarmee = updatedAlarmee, repeatInterval = repeatInterval) {
-                    val message = when (repeatInterval) {
-                        is RepeatInterval.Hourly -> "every hour at minute: ${scheduledDateTime.minute}"
-                        is RepeatInterval.Daily -> "every day at ${scheduledDateTime.time}"
-                        is RepeatInterval.Weekly -> "every week on ${scheduledDateTime.dayOfWeek} at ${scheduledDateTime.time}"
-                        is RepeatInterval.Monthly -> "every month on day ${scheduledDateTime.dayOfMonth} at ${scheduledDateTime.time}"
-                        is RepeatInterval.Yearly -> "every year on the ${scheduledDateTime.month}/${scheduledDateTime.dayOfMonth} at ${scheduledDateTime.time}"
-                        is RepeatInterval.Custom -> "every ${repeatInterval.duration} from ${scheduledDateTime.time}"
-                    }
+                // Save the updated alarmee to settings for further repeating scheduling
+                getSettings().putString(key = updatedAlarmee.uuid, value = Json.encodeToString(Alarmee.serializer(), updatedAlarmee))
 
-                    println("Notification with title '${updatedAlarmee.notificationTitle}' scheduled $message.")
+                emitNextScheduledAlarm()
+
+                // Display message for successful scheduling
+                val message = when (repeatInterval) {
+                    is RepeatInterval.Hourly -> "every hour at minute: ${scheduledDateTime.minute}"
+                    is RepeatInterval.Daily -> "every day at ${scheduledDateTime.time}"
+                    is RepeatInterval.Weekly -> "every week on ${scheduledDateTime.dayOfWeek} at ${scheduledDateTime.time}"
+                    is RepeatInterval.Monthly -> "every month on day ${scheduledDateTime.dayOfMonth} at ${scheduledDateTime.time}"
+                    is RepeatInterval.Yearly -> "every year on the ${scheduledDateTime.month}/${scheduledDateTime.dayOfMonth} at ${scheduledDateTime.time}"
+                    is RepeatInterval.Custom -> "every ${repeatInterval.duration} from ${scheduledDateTime.time}"
                 }
+
+                println("Notification with title '${updatedAlarmee.notificationTitle}' scheduled $message.")
+
             }
             ?: run {
-                scheduleAlarm(alarmee = alarmee) {
-                    println("Notification with title '${updatedAlarmee.notificationTitle}' scheduled at ${updatedAlarmee.scheduledDateTime}.")
-                }
+                // Display message for successful scheduling
+                println("Notification with title '${updatedAlarmee.notificationTitle}' scheduled at ${updatedAlarmee.scheduledDateTime}.")
             }
     }
 
@@ -70,11 +88,68 @@ abstract class AlarmeeScheduler {
         cancelAlarm(uuid = uuid)
     }
 
-    internal abstract fun scheduleAlarm(alarmee: Alarmee, onSuccess: () -> Unit)
+    protected abstract fun getSettings(): Settings
 
-    internal abstract fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval, onSuccess: () -> Unit)
+    private val _nextScheduledAlarmee = MutableSharedFlow<Alarmee>()
+    internal val nextScheduledAlarmee: SharedFlow<Alarmee> = _nextScheduledAlarmee.asSharedFlow()
+
+    internal abstract fun scheduleAlarm(alarmee: Alarmee)
+
+    internal abstract fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval)
 
     internal abstract fun cancelAlarm(uuid: String)
+
+    internal fun rescheduleAllAlarms() {
+        getSettings().keys.forEach { key ->
+            rescheduleAlarm(alarmeeUuid = key)
+        }
+    }
+
+    internal fun rescheduleAlarm(alarmeeUuid: String) {
+        getAlarmeeFromSettings(alarmeeUuid = alarmeeUuid)?.let { alarmee ->
+            println("Rescheduling alarm $alarmee.")
+
+            schedule(alarmee = alarmee)
+        }
+    }
+
+    private fun getAlarmeeFromSettings(alarmeeUuid: String): Alarmee? =
+        try {
+            val alarmeeJson = getSettings().getString(key = alarmeeUuid, defaultValue = "")
+            Json.decodeFromString(Alarmee.serializer(), alarmeeJson)
+        } catch (throwable: Throwable) {
+//            println("No alarmee matching UUID $alarmeeUuid exists in settings.")
+            null
+        }
+
+    private fun emitNextScheduledAlarm() {
+        println("Emitting next scheduled alarm.")
+
+        val alarmees = mutableListOf<Alarmee>()
+
+        // Get all alarms from settings
+        getSettings().keys.forEach { key ->
+            getAlarmeeFromSettings(alarmeeUuid = key)?.let { alarmee ->
+                val scheduledDateTime = adjustDateInFuture(alarmee)
+                val updatedAlarmee = alarmee.copy(scheduledDateTime = scheduledDateTime)
+
+                alarmees.add(updatedAlarmee)
+            }
+        }
+
+        println("All alarms: $alarmees")
+
+        // Sort alarms by scheduled date and time
+        alarmees.sortBy { it.scheduledDateTime }
+
+        // Return the next scheduled alarm, if any
+        if (alarmees.isNotEmpty()) {
+            println("Next scheduled alarm: ${alarmees.first()}")
+            scope.launch {
+                _nextScheduledAlarmee.emit(alarmees.first())
+            }
+        }
+    }
 
     private fun validateAlarmee(alarmee: Alarmee) {
         if (alarmee.repeatInterval is RepeatInterval.Custom) {
@@ -91,30 +166,33 @@ abstract class AlarmeeScheduler {
      * @return The adjusted date and time in the future.
      */
     private fun adjustDateInFuture(alarmee: Alarmee): LocalDateTime {
-        val now = LocalDateTime.now(timeZone = alarmee.timeZone)
+        val now = LocalDateTime.now(timeZone = alarmee.timeZone).ignoreNanoSeconds()
+        var adjustedDateTime = alarmee.scheduledDateTime.ignoreNanoSeconds()
 
-        return if (alarmee.scheduledDateTime <= now) {
-            val adjustedDateTime = if (alarmee.repeatInterval == null) {
+        println("scheduledDateTime: $adjustedDateTime / now: $now")
+
+        while (adjustedDateTime <= now) {
+            adjustedDateTime = if (alarmee.repeatInterval == null) {
                 // One-off alarm: adjust to tomorrow
-                now.plus(1, DateTimeUnit.DAY, timeZone = alarmee.timeZone)
+                adjustedDateTime.plus(1, DateTimeUnit.DAY, timeZone = alarmee.timeZone)
             } else {
                 // Repeating alarm: adjust to the next valid occurrence
                 when (alarmee.repeatInterval) {
-                    is RepeatInterval.Hourly -> now.plus(value = 1, unit = DateTimeUnit.HOUR, timeZone = alarmee.timeZone)
-                    is RepeatInterval.Daily -> now.plus(value = 1, unit = DateTimeUnit.DAY, timeZone = alarmee.timeZone)
-                    is RepeatInterval.Weekly -> now.plus(value = 1, unit = DateTimeUnit.WEEK, timeZone = alarmee.timeZone)
-                    is RepeatInterval.Monthly -> now.plus(value = 1, unit = DateTimeUnit.MONTH, timeZone = alarmee.timeZone)
-                    is RepeatInterval.Yearly -> now.plus(value = 1, unit = DateTimeUnit.YEAR, timeZone = alarmee.timeZone)
-                    is RepeatInterval.Custom -> now.plus(duration = alarmee.repeatInterval.duration, timeZone = alarmee.timeZone)
+                    is RepeatInterval.Hourly -> adjustedDateTime.plus(value = 1, unit = DateTimeUnit.HOUR, timeZone = alarmee.timeZone)
+                    is RepeatInterval.Daily -> adjustedDateTime.plus(value = 1, unit = DateTimeUnit.DAY, timeZone = alarmee.timeZone)
+                    is RepeatInterval.Weekly -> adjustedDateTime.plus(value = 1, unit = DateTimeUnit.WEEK, timeZone = alarmee.timeZone)
+                    is RepeatInterval.Monthly -> adjustedDateTime.plus(value = 1, unit = DateTimeUnit.MONTH, timeZone = alarmee.timeZone)
+                    is RepeatInterval.Yearly -> adjustedDateTime.plus(value = 1, unit = DateTimeUnit.YEAR, timeZone = alarmee.timeZone)
+                    is RepeatInterval.Custom -> adjustedDateTime.plus(duration = alarmee.repeatInterval.duration, timeZone = alarmee.timeZone)
                 }
             }
-
-            println("The scheduled date and time (${alarmee.scheduledDateTime}) was in the past. It has been adjusted to the future: $adjustedDateTime")
-
-            adjustedDateTime
-        } else {
-            alarmee.scheduledDateTime
         }
+
+        if (adjustedDateTime != alarmee.scheduledDateTime.ignoreNanoSeconds()) {
+            println("The scheduled date and time (${alarmee.scheduledDateTime.ignoreNanoSeconds()}) was in the past. It has been adjusted to the future: $adjustedDateTime")
+        }
+
+        return adjustedDateTime
     }
 }
 

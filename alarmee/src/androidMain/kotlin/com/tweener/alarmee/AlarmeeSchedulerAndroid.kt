@@ -1,6 +1,5 @@
 package com.tweener.alarmee
 
-import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -11,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationCompat
+import com.russhwolf.settings.Settings
 import com.tweener.alarmee.channel.AlarmeeNotificationChannel
 import com.tweener.alarmee.channel.NotificationChannelRegister
 import com.tweener.alarmee.configuration.AlarmeeAndroidPlatformConfiguration
@@ -18,6 +18,10 @@ import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 import com.tweener.kmpkit.kotlinextensions.getAlarmManager
 import com.tweener.kmpkit.kotlinextensions.getNotificationManager
 import com.tweener.kmpkit.kotlinextensions.toEpochMilliseconds
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.context.GlobalContext.loadKoinModules
+import org.koin.dsl.module
 
 /**
  * @author Vivien Mahe
@@ -38,49 +42,50 @@ actual fun rememberAlarmeeScheduler(platformConfiguration: AlarmeePlatformConfig
     }
 }
 
-@SuppressLint("ComposableNaming")
 class AlarmeeSchedulerAndroid(
     private val context: Context,
     private val configuration: AlarmeeAndroidPlatformConfiguration,
-) : AlarmeeScheduler() {
+) : AlarmeeScheduler(), KoinComponent {
 
-    override fun scheduleAlarm(alarmee: Alarmee, onSuccess: () -> Unit) {
+    init {
+        val schedulerModule = module {
+            single { this@AlarmeeSchedulerAndroid }
+        }
+        loadKoinModules(schedulerModule)
+    }
+
+    override fun getSettings(): Settings = get()
+
+    override fun scheduleAlarm(alarmee: Alarmee) {
         createNotificationChannels(context = context)
         validateNotificationChannelId(alarmee = alarmee)
 
         val pendingIntent = getPendingIntent(context = context, alarmee = alarmee)
 
         // Schedule the alarm
-        context.getAlarmManager()?.let { alarmManager ->
-            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime.toEpochMilliseconds(timeZone = alarmee.timeZone), pendingIntent)
-
-            // Notification scheduled successfully
-            onSuccess()
-        }
+        context.getAlarmManager()?.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime.toEpochMilliseconds(timeZone = alarmee.timeZone), pendingIntent)
     }
 
-    override fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval, onSuccess: () -> Unit) {
+    override fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterval) {
         createNotificationChannels(context = context)
         validateNotificationChannelId(alarmee = alarmee)
 
         val pendingIntent = getPendingIntent(context = context, alarmee = alarmee)
 
-        // Schedule the alarm according to the repeat interval
-        val intervalMillis = when (repeatInterval) {
-            is RepeatInterval.Hourly -> AlarmManager.INTERVAL_HOUR
-            is RepeatInterval.Daily -> AlarmManager.INTERVAL_DAY
-            is RepeatInterval.Weekly -> AlarmManager.INTERVAL_DAY * 7
-            is RepeatInterval.Monthly -> AlarmManager.INTERVAL_DAY * 30
-            is RepeatInterval.Yearly -> AlarmManager.INTERVAL_DAY * 30 * 12
-            is RepeatInterval.Custom -> repeatInterval.duration.inWholeMilliseconds
-        }
-
-        context.getAlarmManager()?.let { alarmManager ->
-            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime.toEpochMilliseconds(timeZone = alarmee.timeZone), intervalMillis, pendingIntent)
-
-            // Notification scheduled successfully
-            onSuccess()
-        }
+        // Schedule the alarm
+        context.getAlarmManager()?.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime.toEpochMilliseconds(timeZone = alarmee.timeZone), pendingIntent)
+//
+//        // Schedule the alarm according to the repeat interval
+//        val intervalMillis = when (repeatInterval) {
+//            is RepeatInterval.Hourly -> AlarmManager.INTERVAL_HOUR
+//            is RepeatInterval.Daily -> AlarmManager.INTERVAL_DAY
+//            is RepeatInterval.Weekly -> AlarmManager.INTERVAL_DAY * 7
+//            is RepeatInterval.Monthly -> AlarmManager.INTERVAL_DAY * 30
+//            is RepeatInterval.Yearly -> AlarmManager.INTERVAL_DAY * 30 * 12
+//            is RepeatInterval.Custom -> repeatInterval.duration.inWholeMilliseconds
+//        }
+//
+//        context.getAlarmManager()?.setRepeating(AlarmManager.RTC_WAKEUP, alarmee.scheduledDateTime.toEpochMilliseconds(timeZone = alarmee.timeZone), intervalMillis, pendingIntent)
     }
 
     override fun cancelAlarm(uuid: String) {
@@ -152,6 +157,7 @@ class AlarmeeSchedulerAndroid(
             putExtra(NotificationBroadcastReceiver.KEY_CHANNEL_ID, alarmee.androidNotificationConfiguration.channelId)
             putExtra(NotificationBroadcastReceiver.KEY_ICON_RES_ID, notificationResId)
             putExtra(NotificationBroadcastReceiver.KEY_ICON_COLOR, notificationIconColor.toArgb())
+            putExtra(NotificationBroadcastReceiver.KEY_IS_REPEATING, alarmee.repeatInterval != null)
         }
 
         // Create the broadcast pending intent
