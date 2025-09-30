@@ -77,8 +77,18 @@ actual fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterv
             }
 
             is RepeatInterval.Weekly -> {
-                dateComponents.hour = alarmee.scheduledDateTime.hour.toLong()
-                dateComponents.weekday = alarmee.scheduledDateTime.dayOfWeek.isoDayNumber.toLong()
+                dateComponents.hour = alarmee.scheduledDateTime.hour.toLong() 
+
+                val kotlinIsoDayNumber: Int = alarmee.scheduledDateTime.dayOfWeek.isoDayNumber
+
+                val swiftCompatibleWeekday: Int
+                if (kotlinIsoDayNumber == 7) { 
+                    swiftCompatibleWeekday = 1 
+                } else {
+                    swiftCompatibleWeekday = kotlinIsoDayNumber + 1 
+                }
+                
+                dateComponents.weekday = swiftCompatibleWeekday.toLong()
             }
 
             is RepeatInterval.Monthly -> {
