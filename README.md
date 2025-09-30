@@ -464,13 +464,40 @@ val pushService = alarmService.push
 
 This is only available on **Android** and **iOS**. On other targets, `pushService` will be `null`.
 
-#### Firebase Token Updates
+#### Getting the Firebase Installation ID
+
+You can retrieve the Firebase Installation ID for the current app instance:
+
+```kotlin
+val installationIdResult = pushService.getInstallationId()
+installationIdResult.onSuccess { installationId ->
+    println("Firebase Installation ID: $installationId")
+}.onFailure { error ->
+    println("Failed to get Installation ID: $error")
+}
+```
+
+The Installation ID uniquely identifies the app installation on the device and is useful for analytics, targeting specific devices, or debugging.
+
+#### Firebase Token Management
 
 Firebase Cloud Messaging (FCM) tokens can change when:
 - The app is restored on a new device
-- The app is restored from backup  
+- The app is restored from backup
 - The app data is cleared
 - The token is periodically refreshed by Firebase
+
+You can retrieve the current FCM token:
+
+```kotlin
+val tokenResult = pushService.getToken()
+tokenResult.onSuccess { token ->
+    println("FCM Token: $token")
+    // Send token to your server
+}.onFailure { error ->
+    println("Failed to get token: $error")
+}
+```
 
 To handle token updates, register a callback that will be notified whenever a new token is generated:
 
