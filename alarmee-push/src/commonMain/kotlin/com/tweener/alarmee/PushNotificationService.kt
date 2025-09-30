@@ -29,6 +29,14 @@ interface PushNotificationService {
     fun handleIncomingMessage(data: Map<String, String>)
 
     /**
+     * Retrieves the Firebase Installation ID for this app instance.
+     * The Installation ID is a unique identifier for the app installation on the device.
+     *
+     * @return A [Result] containing the Installation ID on success, or an exception on failure.
+     */
+    suspend fun getInstallationId(): Result<String>
+
+    /**
      * Retrieves the current Firebase Cloud Messaging (FCM) token for the device.
      * This token uniquely identifies the app instance and is required for sending push notifications.
      *

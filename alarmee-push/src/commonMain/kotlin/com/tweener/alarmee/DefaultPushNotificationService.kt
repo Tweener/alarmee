@@ -3,6 +3,7 @@ package com.tweener.alarmee
 import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 import com.tweener.kmpkit.thread.suspendCatching
 import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.installations.installations
 import dev.gitlive.firebase.messaging.messaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,12 @@ internal class DefaultPushNotificationService(
                 }
             }
         }
+    }
+
+    override suspend fun getInstallationId(): Result<String> = suspendCatching {
+        Firebase.installations.getId()
+    }.onFailure { throwable ->
+        println("Error getting Firebase Installation ID: $throwable")
     }
 
     override suspend fun getToken(): Result<String> = suspendCatching {

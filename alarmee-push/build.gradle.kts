@@ -79,7 +79,7 @@ kotlin {
 
             implementation(libs.kmpkit)
             implementation(compose.foundation)
-            implementation(libs.firebase.messaging)
+            implementation(libs.bundles.gitlive.firebase)
         }
     }
 }

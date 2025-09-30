@@ -19,8 +19,13 @@ kotlin-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coro
 kmpkit = { group = "io.github.tweener", name = "kmpkit", version.ref = "kmpKit" }
 android-activity = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidActivity" }
 android-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidActivity" }
-firebase-messaging = { group = "dev.gitlive", name = "firebase-messaging", version.ref = "firebaseGitLiveApp" }
 android-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidStartup" }
+
+firebase-messaging = { group = "dev.gitlive", name = "firebase-messaging", version.ref = "firebaseGitLiveApp" }
+firebase-installations = { group = "dev.gitlive", name = "firebase-installations", version.ref = "firebaseGitLiveApp" }
+
+[bundles]
+gitlive-firebase = ["firebase-messaging", "firebase-installations"]
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

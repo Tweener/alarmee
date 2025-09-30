@@ -43,6 +43,10 @@ fun App() {
     // Example of how to get the Firebase push token
     scope.launch {
         alarmService.push.let { pushService ->
+            // Get the Firebase Installation ID, if available
+            val installationId = pushService.getInstallationId()
+            println("🆔 Firebase Installation ID: ${installationId.getOrNull() ?: "Error: ${installationId.exceptionOrNull()}"}")
+
             // Register for token updates
             pushService.onNewToken { newToken ->
                 println("🔥 New Firebase token received: $newToken")
