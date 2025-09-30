@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.5.0] - September 30, 2025
+- ✨ **`[FEATURE]`**: Added `PushNotificationService#getInstallationId()` method to retrieve the Firebase Installation ID for the app instance on mobile targets (Android & iOS).
+
 ## [2.4.2] - September 24, 2025
 - ✨ **`[FIX]`**: 🍎 On iOS, Set FirebaseMessaging pod to linkOnly in iOS config. This change ensures the pod is only linked and not embedded, which may help resolve integration or duplication issues.
 
