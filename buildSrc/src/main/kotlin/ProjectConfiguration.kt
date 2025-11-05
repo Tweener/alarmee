@@ -9,7 +9,7 @@ object ProjectConfiguration {
 
     object Alarmee {
         const val packageName = "com.tweener.alarmee"
-        const val versionName = "2.5.0"
+        const val versionName = "2.5.1"
         const val namespace = "$packageName.android"
         const val compileSDK = 36
         const val minSDK = 24
