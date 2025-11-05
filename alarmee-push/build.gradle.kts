@@ -101,7 +101,7 @@ mavenPublishing {
     coordinates(groupId = group.toString(), artifactId = "alarmee-push", version = version.toString())
     configure(
         platform = KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            javadocJar = JavadocJar.Dokka("dokkaGeneratePublicationHtml"),
             sourcesJar = true,
         )
     )
