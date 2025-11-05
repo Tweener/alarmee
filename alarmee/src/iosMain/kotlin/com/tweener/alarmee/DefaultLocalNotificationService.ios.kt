@@ -78,7 +78,8 @@ actual fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterv
 
             is RepeatInterval.Weekly -> {
                 dateComponents.hour = alarmee.scheduledDateTime.hour.toLong()
-                dateComponents.weekday = alarmee.scheduledDateTime.dayOfWeek.isoDayNumber.toLong()
+                // Convert ISO 8601 day number (Monday=1, Sunday=7) to NSCalendar weekday (Sunday=1, Monday=2, ..., Saturday=7)
+                dateComponents.weekday = ((alarmee.scheduledDateTime.dayOfWeek.isoDayNumber % 7) + 1).toLong()
             }
 
             is RepeatInterval.Monthly -> {
