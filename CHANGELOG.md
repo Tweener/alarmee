@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.5.1] - November 5, 2025
+- 🐛 **`[FIX]`**: 🍎 On iOS, fixed weekly repeating notifications to correctly convert ISO 8601 day numbers (Monday=1, Sunday=7) to NSCalendar weekday numbers (Sunday=1, Monday=2, etc.). This ensures notifications trigger on the correct day of the week regardless of device locale settings.
+- 🔄 Update Kotlin to 2.2.21.
+- 🔄 Update Compose Multiplatform to 1.9.2.
+- 🔄 Update Material3 to 1.9.0.
+- 🔄 Update Dokka to 2.1.0.
+- 🔄 Update KMPKit to 1.0.13.
+- 🔄 Update GitLiveApp Firebase to 2.4.0.
+- 🔄 Update Google Services plugin to 4.4.4.
+- 🔄 Update Dependency Versions plugin to 0.53.0.
+
 ## [2.5.0] - September 30, 2025
 - ✨ **`[FEATURE]`**: Added `PushNotificationService#getInstallationId()` method to retrieve the Firebase Installation ID for the app instance on mobile targets (Android & iOS).
 
