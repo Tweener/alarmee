@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.5.2] - November 6, 2025
+- 🛠 **`[IMPROVMENT]`**: Refactored `MobileAlarmeeService` initialization methods for better clarity. Split the initialize method into two overloads: one accepting only `platformConfiguration` and another accepting both `platformConfiguration` and `Firebase` instance, improving flexibility and code organization.
+
 ## [2.5.1] - November 5, 2025
 - 🐛 **`[FIX]`**: 🍎 On iOS, fixed weekly repeating notifications to correctly convert ISO 8601 day numbers (Monday=1, Sunday=7) to NSCalendar weekday numbers (Sunday=1, Monday=2, etc.). This ensures notifications trigger on the correct day of the week regardless of device locale settings.
 - 🔄 Update Kotlin to 2.2.21.
