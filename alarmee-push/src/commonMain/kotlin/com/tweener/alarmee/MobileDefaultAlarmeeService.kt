@@ -12,7 +12,15 @@ internal class MobileDefaultAlarmeeService : DefaultAlarmeeService(), MobileAlar
     override lateinit var push: PushNotificationService
     private var isInitialized = false
 
-    override fun initialize(platformConfiguration: AlarmeePlatformConfiguration, firebase: Firebase?) {
+    override fun initialize(platformConfiguration: AlarmeePlatformConfiguration) {
+        commonInitialization(platformConfiguration = platformConfiguration, firebase = null)
+    }
+
+    override fun initialize(platformConfiguration: AlarmeePlatformConfiguration, firebase: Firebase) {
+        commonInitialization(platformConfiguration = platformConfiguration, firebase = firebase)
+    }
+
+    private fun commonInitialization(platformConfiguration: AlarmeePlatformConfiguration, firebase: Firebase?) {
         super.initialize(platformConfiguration = platformConfiguration)
 
         // Check if the service is already initialized to prevent re-initialization
