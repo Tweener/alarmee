@@ -34,6 +34,7 @@ Be sure to show your support by starring ⭐️ this repository, and feel free t
 - 🔁 **Repeating alarm**: Schedule recurring alarms with intervals: hourly, daily, weekly, monthly, yearly or custom (providing a duration).
 - ⚡️ **Instant notifications**: Send notifications immediately without scheduling them.
 - ☁️ **Push notifications**: Handle remote notifications via FCM/APNs.
+- 🔘 **Action buttons**: Add interactive action buttons to notifications (Android).
 - 🎨 **Extensible Configuration**: Customize alarms and notifications with platform-specific settings.
 
 ![Group 4](https://github.com/user-attachments/assets/4e455c6c-6d45-4ca6-b292-8f8e57d4f799)
@@ -444,6 +445,57 @@ Alarmee(
 
 If `badge = 0`, the badge will be cleared from the app icon. If `badge = null`, the badge will not be updated.
 </details>
+
+##### Notification action buttons
+You can add up to 3 action buttons to your notifications. When a user taps an action button, your app receives a callback with the action ID.
+
+> [!NOTE]
+> Action buttons are currently supported on **Android only**. iOS support will be added in a future release.
+
+**Adding action buttons to a notification:**
+```kotlin
+localService.immediate(
+    alarmee = Alarmee(
+        uuid = "messageNotificationId",
+        notificationTitle = "📩 New Message",
+        notificationBody = "You have a new message!",
+        actions = listOf(
+            NotificationAction(id = "reply", label = "Reply"),
+            NotificationAction(id = "mark_read", label = "Mark as Read"),
+            NotificationAction(id = "dismiss", label = "Dismiss"),
+        ),
+        androidNotificationConfiguration = AndroidNotificationConfiguration(
+            priority = AndroidNotificationPriority.HIGH,
+            channelId = "messagesChannelId",
+        ),
+        iosNotificationConfiguration = IosNotificationConfiguration(),
+    )
+)
+```
+
+**Handling action button clicks (Android):**
+
+To receive callbacks when a user taps an action button, register a callback using the `onActionClicked` extension function:
+
+```kotlin
+import com.tweener.alarmee.onActionClicked
+
+// Register the callback early in your app lifecycle
+alarmService.local.onActionClicked { event ->
+    println("Action clicked: ${event.actionId} on notification ${event.notificationUuid}")
+
+    when (event.actionId) {
+        "reply" -> { /* Handle reply action */ }
+        "mark_read" -> { /* Handle mark as read action */ }
+        "dismiss" -> { /* Handle dismiss action */ }
+    }
+}
+```
+
+> [!IMPORTANT]
+> - Only one callback can be registered at a time. Subsequent calls replace the previous callback.
+> - Register the callback early in your app lifecycle (e.g., in `Application.onCreate()` or a `LaunchedEffect` in your root composable).
+> - When an action button is tapped, the notification is automatically dismissed.
 
 ---
 
