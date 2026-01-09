@@ -13,6 +13,14 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name="com.tweener.alarmee.reveicer.NotificationActionBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.tweener.alarmee.ACTION_CLICKED" />
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

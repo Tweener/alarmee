@@ -21,6 +21,7 @@ import com.tweener.alarmee.model.Alarmee
 import com.tweener.alarmee.model.AndroidNotificationConfiguration
 import com.tweener.alarmee.model.AndroidNotificationPriority
 import com.tweener.alarmee.model.IosNotificationConfiguration
+import com.tweener.alarmee.model.NotificationAction
 import com.tweener.alarmee.model.RepeatInterval
 import com.tweener.alarmee.rememberAlarmeeMobileService
 import com.tweener.alarmee.sample.ui.theme.AlarmeeTheme
@@ -39,6 +40,9 @@ import kotlin.time.Duration.Companion.seconds
 fun App() {
     val alarmService: MobileAlarmeeService = rememberAlarmeeMobileService(platformConfiguration = createAlarmeePlatformConfiguration())
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    // Register callback for notification action button clicks (Android-specific, no-op on iOS)
+    alarmService.local.registerActionCallback()
 
     // Example of how to get the Firebase push token
     scope.launch {
@@ -133,7 +137,7 @@ fun App() {
                             iosNotificationConfiguration = IosNotificationConfiguration(),
                         )
                     )
-                }) { Text("Push Notification Now") }
+                }) { Text("Send notification now") }
 
                 Button(onClick = {
                     alarmService.local.immediate(
@@ -150,7 +154,27 @@ fun App() {
                             ),
                         )
                     )
-                }) { Text("Push a notification with sound") }
+                }) { Text("Send a notification with sound") }
+
+                Button(onClick = {
+                    alarmService.local.immediate(
+                        alarmee = Alarmee(
+                            uuid = "actionNotificationId",
+                            notificationTitle = "📩 New Message",
+                            notificationBody = "You have a new message! Tap an action to respond.",
+                            actions = listOf(
+                                NotificationAction(id = "reply", label = "Reply"),
+                                NotificationAction(id = "mark_read", label = "Mark as Read"),
+                                NotificationAction(id = "dismiss", label = "Dismiss"),
+                            ),
+                            androidNotificationConfiguration = AndroidNotificationConfiguration(
+                                priority = AndroidNotificationPriority.HIGH,
+                                channelId = "immediateChannelId",
+                            ),
+                            iosNotificationConfiguration = IosNotificationConfiguration(),
+                        )
+                    )
+                }) { Text("Send a notification with actions") }
 
                 Button(onClick = {
                     scope.launch {
@@ -160,7 +184,7 @@ fun App() {
                                 .onFailure { throwable -> println("Failed to get Firebase token: $throwable") }
                         }
                     }
-                }) { Text("Get Current Firebase Token") }
+                }) { Text("Get current Firebase token") }
 
                 Button(onClick = {
                     scope.launch {
@@ -171,15 +195,15 @@ fun App() {
                                 .onFailure { throwable -> println("🔄 Token refresh failed: $throwable") }
                         }
                     }
-                }) { Text("Force Token Refresh (Test)") }
+                }) { Text("Force token refresh") }
 
                 Button(onClick = {
                     alarmService.local.cancel("myOneOffAlarmId")
-                }) { Text("Cancel One-off Alarmee") }
+                }) { Text("Cancel one-off Alarmee") }
 
                 Button(onClick = {
                     alarmService.local.cancelAll()
-                }) { Text("Cancel All Alarmees") }
+                }) { Text("Cancel all Alarmees") }
             }
         }
     }

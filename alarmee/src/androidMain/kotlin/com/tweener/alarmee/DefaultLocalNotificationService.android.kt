@@ -13,7 +13,10 @@ import com.tweener.alarmee.configuration.AlarmeeAndroidPlatformConfiguration
 import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 import com.tweener.alarmee.model.Alarmee
 import com.tweener.alarmee.model.AndroidNotificationPriority
+import com.tweener.alarmee.model.NotificationAction
 import com.tweener.alarmee.model.RepeatInterval
+import org.json.JSONArray
+import org.json.JSONObject
 import com.tweener.alarmee.notification.NotificationFactory
 import com.tweener.alarmee.reveicer.NotificationBroadcastReceiver
 import com.tweener.kmpkit.kotlinextensions.getAlarmManager
@@ -149,6 +152,8 @@ actual fun immediateAlarm(alarmee: Alarmee, config: AlarmeePlatformConfiguration
                 soundFilename = config.notificationChannels.firstOrNull { it.id == channelId }?.soundFilename,
                 deepLinkUri = alarmee.deepLinkUri,
                 imageUrl = alarmee.imageUrl,
+                notificationUuid = alarmee.uuid,
+                actions = alarmee.actions,
             )
 
             applicationContext.getNotificationManager()?.let { notificationManager ->
@@ -230,6 +235,11 @@ private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfigurat
         putExtra(NotificationBroadcastReceiver.KEY_SOUND_FILENAME, soundFilename)
         putExtra(NotificationBroadcastReceiver.KEY_DEEP_LINK_URI, alarmee.deepLinkUri)
         putExtra(NotificationBroadcastReceiver.KEY_IMAGE_URL, alarmee.imageUrl)
+
+        // Serialize actions to JSON
+        if (alarmee.actions.isNotEmpty()) {
+            putExtra(NotificationBroadcastReceiver.KEY_ACTIONS_JSON, serializeActions(alarmee.actions))
+        }
     }
 
     // Create the broadcast pending intent
@@ -256,3 +266,19 @@ private fun mapPriority(priority: AndroidNotificationPriority): Int =
  */
 private fun canScheduleExactAlarms(alarmManager: AlarmManager): Boolean =
     Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
+
+/**
+ * Serializes a list of notification actions to JSON format.
+ */
+private fun serializeActions(actions: List<NotificationAction>): String {
+    val jsonArray = JSONArray()
+    actions.forEach { action ->
+        val jsonObject = JSONObject().apply {
+            put("id", action.id)
+            put("label", action.label)
+            action.iconResId?.let { put("iconResId", it) }
+        }
+        jsonArray.put(jsonObject)
+    }
+    return jsonArray.toString()
+}

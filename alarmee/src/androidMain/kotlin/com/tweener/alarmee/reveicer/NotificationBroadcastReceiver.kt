@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import com.tweener.alarmee.android.R
+import com.tweener.alarmee.model.NotificationAction
 import com.tweener.alarmee.notification.NotificationFactory
 import com.tweener.kmpkit.kotlinextensions.getNotificationManager
 import com.tweener.kmpkit.utils.safeLet
@@ -14,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 
 /**
  * @author Vivien Mahe
@@ -33,6 +35,7 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
         const val KEY_SOUND_FILENAME = "notificationSoundFilename"
         const val KEY_DEEP_LINK_URI = "notificationDeepLinkUri"
         const val KEY_IMAGE_URL = "notificationImageUrl"
+        const val KEY_ACTIONS_JSON = "notificationActionsJson"
 
         val DEFAULT_ICON_RES_ID = R.drawable.ic_notification
         val DEFAULT_ICON_COLOR = Color.Transparent
@@ -55,6 +58,10 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                 val soundFilename = intent.getStringExtra(KEY_SOUND_FILENAME)
                 val deepLinkUri = intent.getStringExtra(KEY_DEEP_LINK_URI)
                 val imageUrl = intent.getStringExtra(KEY_IMAGE_URL)
+                val actionsJson = intent.getStringExtra(KEY_ACTIONS_JSON)
+
+                // Deserialize actions
+                val actions = actionsJson?.let { deserializeActions(it) } ?: emptyList()
 
                 // For devices running on Android before Android 0, channelId passed through intents might be null so we used a default channelId that will be ignored
                 val channelId = intent.getStringExtra(KEY_CHANNEL_ID) ?: DEFAULT_CHANNEL_ID
@@ -72,6 +79,8 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                         soundFilename = soundFilename,
                         deepLinkUri = deepLinkUri,
                         imageUrl = imageUrl,
+                        notificationUuid = uuid,
+                        actions = actions,
                     )
 
                     // Display the notification
@@ -84,6 +93,23 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                     }
                 }
             }
+        }
+    }
+
+    private fun deserializeActions(json: String): List<NotificationAction> {
+        return try {
+            val jsonArray = JSONArray(json)
+            (0 until jsonArray.length()).map { i ->
+                val obj = jsonArray.getJSONObject(i)
+                NotificationAction(
+                    id = obj.getString("id"),
+                    label = obj.getString("label"),
+                    iconResId = if (obj.has("iconResId") && !obj.isNull("iconResId")) obj.getInt("iconResId") else null,
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 }

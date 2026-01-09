@@ -1,5 +1,6 @@
 package com.tweener.alarmee.sample
 
+import com.tweener.alarmee.LocalNotificationService
 import com.tweener.alarmee.configuration.AlarmeeIosPlatformConfiguration
 import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 
@@ -11,3 +12,7 @@ import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 private val alarmeePlatformConfiguration = AlarmeeIosPlatformConfiguration
 
 actual fun createAlarmeePlatformConfiguration(): AlarmeePlatformConfiguration = alarmeePlatformConfiguration
+
+actual fun LocalNotificationService.registerActionCallback() {
+    // No-op on iOS for now. iOS action support will be added later.
+}

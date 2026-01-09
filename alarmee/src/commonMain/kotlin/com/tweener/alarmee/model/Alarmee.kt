@@ -20,6 +20,7 @@ import kotlinx.datetime.TimeZone
  * @property repeatInterval The optional interval at which the alarm should repeat (e.g., hourly, daily, weekly). If `null`, the alarm will not repeat.
  * @property deepLinkUri An optional URI that can be used to open a specific screen in the app when the notification is tapped. This is useful for deep linking into the app.
  * @property imageUrl An optional URL for an image to be displayed in the notification. This can enhance the visual appeal of the notification.
+ * @property actions A list of action buttons to display on the notification. Android supports up to 3 action buttons; any extras will be ignored.
  * @property androidNotificationConfiguration Configuration specific to Android notifications.
  * @property iosNotificationConfiguration Configuration specific to iOS notifications.
  *
@@ -35,6 +36,7 @@ data class Alarmee(
     val repeatInterval: RepeatInterval? = null,
     val deepLinkUri: String? = null,
     val imageUrl: String? = null,
+    val actions: List<NotificationAction> = emptyList(),
     val androidNotificationConfiguration: AndroidNotificationConfiguration,
     val iosNotificationConfiguration: IosNotificationConfiguration,
 )

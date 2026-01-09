@@ -8,6 +8,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import com.tweener.alarmee._internal.kotlinextensions.getRawUri
+import com.tweener.alarmee.model.NotificationAction
+import com.tweener.alarmee.reveicer.NotificationActionBroadcastReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -37,6 +39,8 @@ class NotificationFactory {
             deepLinkUri: String? = null,
             imageUrl: String? = null,
             customData: Map<String, String>? = null,
+            notificationUuid: String? = null,
+            actions: List<NotificationAction> = emptyList(),
         ): Notification {
             val bitmap = withContext(Dispatchers.IO) {
                 imageUrl?.let { loadImageFromUrl(imageUrl = it) }
@@ -61,6 +65,18 @@ class NotificationFactory {
                                 .bigLargeIcon(null as? Bitmap)
                         )
                     }
+
+                    // Add action buttons (max 3 supported by Android)
+                    notificationUuid?.let { uuid ->
+                        actions.take(3).forEach { action ->
+                            val actionPendingIntent = getActionPendingIntent(
+                                context = context,
+                                notificationUuid = uuid,
+                                actionId = action.id,
+                            )
+                            addAction(action.iconResId ?: 0, action.label, actionPendingIntent)
+                        }
+                    }
                 }
                 .build()
         }
@@ -72,6 +88,24 @@ class NotificationFactory {
                 customData?.forEach { (key, value) -> putExtra(key, value) } // Pass all custom data to the activity
             }
             return PendingIntent.getActivity(context, deepLinkUri?.hashCode() ?: 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
+        private fun getActionPendingIntent(context: Context, notificationUuid: String, actionId: String): PendingIntent {
+            val intent = Intent(context, NotificationActionBroadcastReceiver::class.java).apply {
+                action = NotificationActionBroadcastReceiver.ACTION_NOTIFICATION_ACTION_CLICKED
+                putExtra(NotificationActionBroadcastReceiver.KEY_NOTIFICATION_UUID, notificationUuid)
+                putExtra(NotificationActionBroadcastReceiver.KEY_ACTION_ID, actionId)
+            }
+
+            // Use unique request code based on notification UUID + action ID
+            val requestCode = "$notificationUuid-$actionId".hashCode()
+
+            return PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
         }
 
         private fun Context.getLauncherActivityIntent(): Intent? = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)

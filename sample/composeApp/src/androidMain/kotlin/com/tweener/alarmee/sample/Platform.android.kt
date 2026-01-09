@@ -2,9 +2,11 @@ package com.tweener.alarmee.sample
 
 import android.app.NotificationManager
 import androidx.compose.ui.graphics.Color
+import com.tweener.alarmee.LocalNotificationService
 import com.tweener.alarmee.channel.AlarmeeNotificationChannel
 import com.tweener.alarmee.configuration.AlarmeeAndroidPlatformConfiguration
 import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
+import com.tweener.alarmee.onActionClicked
 
 /**
  * @author Vivien Mahe
@@ -25,3 +27,9 @@ private val alarmeePlatformConfiguration =
     )
 
 actual fun createAlarmeePlatformConfiguration(): AlarmeePlatformConfiguration = alarmeePlatformConfiguration
+
+actual fun LocalNotificationService.registerActionCallback() {
+    onActionClicked { event ->
+        println("Notification action clicked! UUID: ${event.notificationUuid}, Action: ${event.actionId}")
+    }
+}
