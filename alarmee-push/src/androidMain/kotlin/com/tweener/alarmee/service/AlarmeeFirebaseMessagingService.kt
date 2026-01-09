@@ -66,6 +66,7 @@ internal class AlarmeeFirebaseMessagingService : FirebaseMessagingService() {
                     iconColor = DEFAULT_ICON_COLOR.toArgb(),
                     deepLinkUri = deepLinkUri,
                     imageUrl = imageUrl,
+                    customData = message.data,
                 )
 
                 applicationContext.getNotificationManager()?.let { notificationManager ->

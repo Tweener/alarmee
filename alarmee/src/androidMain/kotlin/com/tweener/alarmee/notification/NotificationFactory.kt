@@ -36,6 +36,7 @@ class NotificationFactory {
             soundFilename: String? = null,
             deepLinkUri: String? = null,
             imageUrl: String? = null,
+            customData: Map<String, String>? = null,
         ): Notification {
             val bitmap = withContext(Dispatchers.IO) {
                 imageUrl?.let { loadImageFromUrl(imageUrl = it) }
@@ -50,7 +51,7 @@ class NotificationFactory {
                     setColor(iconColor)
                     setAutoCancel(true)
                     soundFilename?.let { setSound(context.getRawUri(it)) } // Ignored on Android 8.0 and higher in favor of the value set on the notification's channel
-                    setContentIntent(getPendingIntent(context = context, deepLinkUri = deepLinkUri)) // Handles click on notification
+                    setContentIntent(getPendingIntent(context = context, deepLinkUri = deepLinkUri, customData = customData)) // Handles click on notification
 
                     bitmap?.let {
                         setLargeIcon(it)
@@ -64,10 +65,11 @@ class NotificationFactory {
                 .build()
         }
 
-        private fun getPendingIntent(context: Context, deepLinkUri: String? = null): PendingIntent? {
+        private fun getPendingIntent(context: Context, deepLinkUri: String? = null, customData: Map<String, String>? = null): PendingIntent? {
             val intent = context.getLauncherActivityIntent()?.apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 deepLinkUri?.let { putExtra(DEEP_LINK_URI_PARAM, it) } // Pass the deep link URI to the activity
+                customData?.forEach { (key, value) -> putExtra(key, value) } // Pass all custom data to the activity
             }
             return PendingIntent.getActivity(context, deepLinkUri?.hashCode() ?: 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         }
