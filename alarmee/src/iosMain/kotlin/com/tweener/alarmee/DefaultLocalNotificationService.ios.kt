@@ -3,6 +3,7 @@ package com.tweener.alarmee
 import com.tweener.alarmee.configuration.AlarmeeIosPlatformConfiguration
 import com.tweener.alarmee.configuration.AlarmeePlatformConfiguration
 import com.tweener.alarmee.model.Alarmee
+import com.tweener.alarmee.model.NotificationAction
 import com.tweener.alarmee.model.RepeatInterval
 import com.tweener.kmpkit.kotlinextensions.toEpochMilliseconds
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -33,7 +34,11 @@ import platform.UserNotifications.UNAuthorizationOptionBadge
 import platform.UserNotifications.UNAuthorizationOptionSound
 import platform.UserNotifications.UNCalendarNotificationTrigger
 import platform.UserNotifications.UNMutableNotificationContent
+import platform.UserNotifications.UNNotificationAction
+import platform.UserNotifications.UNNotificationActionOptionForeground
 import platform.UserNotifications.UNNotificationAttachment
+import platform.UserNotifications.UNNotificationCategory
+import platform.UserNotifications.UNNotificationCategoryOptionNone
 import platform.UserNotifications.UNNotificationRequest
 import platform.UserNotifications.UNNotificationSound
 import platform.UserNotifications.UNNotificationTrigger
@@ -46,6 +51,8 @@ import platform.UserNotifications.UNUserNotificationCenter
  */
 
 private const val DEEP_LINK_URI_PARAM = "deepLinkUri"
+private const val NOTIFICATION_UUID_PARAM = "notificationUuid"
+private const val CATEGORY_PREFIX = "alarmee_category_"
 
 actual fun createLocalNotificationService(config: AlarmeePlatformConfiguration): LocalNotificationService {
     requirePlatformConfiguration(providedPlatformConfiguration = config, targetPlatformConfiguration = AlarmeeIosPlatformConfiguration::class)
@@ -116,23 +123,37 @@ actual fun immediateAlarm(alarmee: Alarmee, config: AlarmeePlatformConfiguration
 }
 
 private fun configureNotification(uuid: String, alarmee: Alarmee, notificationTrigger: UNNotificationTrigger? = null, onScheduleSuccess: () -> Unit) {
+    val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
+
+    // Build userInfo with notification UUID and optional deep link
+    val userInfo = mutableMapOf<Any?, Any?>(NOTIFICATION_UUID_PARAM to uuid)
+    alarmee.deepLinkUri?.let { userInfo[DEEP_LINK_URI_PARAM] = it }
+
     val content = UNMutableNotificationContent().apply {
         setTitle(alarmee.notificationTitle)
         setBody(alarmee.notificationBody)
         alarmee.iosNotificationConfiguration.soundFilename?.let { setSound(UNNotificationSound.soundNamed(name = it)) }
         alarmee.iosNotificationConfiguration.badge?.let { setBadge(NSNumber(int = it)) }
-        alarmee.deepLinkUri?.let { setUserInfo(mapOf(DEEP_LINK_URI_PARAM to it)) }
+        setUserInfo(userInfo)
 
         // Add the image as attachment if available
         alarmee.imageUrl?.let { imageUrl ->
             val attachment = downloadImageAsAttachment(imageUrl)
             attachment?.let { setAttachments(listOf(it)) }
         }
+
+        // Set up notification category with actions if any
+        if (alarmee.actions.isNotEmpty()) {
+            val categoryIdentifier = registerNotificationCategory(
+                notificationCenter = notificationCenter,
+                actions = alarmee.actions,
+            )
+            setCategoryIdentifier(categoryIdentifier)
+        }
     }
 
     val request = UNNotificationRequest.requestWithIdentifier(identifier = uuid, content = content, trigger = notificationTrigger)
 
-    val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
     notificationCenter.requestAuthorizationWithOptions(options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge) { granted, authorizationError ->
         if (granted) {
             // Schedule the notification
@@ -148,6 +169,46 @@ private fun configureNotification(uuid: String, alarmee: Alarmee, notificationTr
             println("Error requesting notification permission: $authorizationError")
         }
     }
+}
+
+/**
+ * Registers a notification category with the given actions.
+ * Returns the category identifier to be set on the notification content.
+ */
+private fun registerNotificationCategory(
+    notificationCenter: UNUserNotificationCenter,
+    actions: List<NotificationAction>,
+): String {
+    // Create a unique category identifier based on action IDs (max 3 actions)
+    val actionsToUse = actions.take(3)
+    val categoryIdentifier = CATEGORY_PREFIX + actionsToUse.map { it.id }.sorted().joinToString("_")
+
+    // Create UNNotificationAction for each action
+    val notificationActions = actionsToUse.map { action ->
+        UNNotificationAction.actionWithIdentifier(
+            identifier = action.id,
+            title = action.label,
+            options = UNNotificationActionOptionForeground, // Opens the app when tapped
+        )
+    }
+
+    // Create and register the category
+    val category = UNNotificationCategory.categoryWithIdentifier(
+        identifier = categoryIdentifier,
+        actions = notificationActions,
+        intentIdentifiers = emptyList<String>(),
+        options = UNNotificationCategoryOptionNone,
+    )
+
+    // Get existing categories and add the new one
+    notificationCenter.getNotificationCategoriesWithCompletionHandler { existingCategories ->
+        @Suppress("UNCHECKED_CAST")
+        val categories = (existingCategories as? Set<UNNotificationCategory>)?.toMutableSet() ?: mutableSetOf()
+        categories.add(category)
+        notificationCenter.setNotificationCategories(categories)
+    }
+
+    return categoryIdentifier
 }
 
 private fun LocalDateTime.toNSDateComponents(timeZone: TimeZone = TimeZone.currentSystemDefault()): NSDateComponents {

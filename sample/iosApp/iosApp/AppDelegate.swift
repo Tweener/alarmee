@@ -35,8 +35,17 @@ class AppDelegate : NSObject, UIApplicationDelegate, UNUserNotificationCenterDel
     
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         let userInfo = response.notification.request.content.userInfo
-        
+        let actionIdentifier = response.actionIdentifier
+
         print("userInfo: \(userInfo)")
+        print("actionIdentifier: \(actionIdentifier)")
+
+        // Handle notification action button taps
+        if actionIdentifier != UNNotificationDefaultActionIdentifier && actionIdentifier != UNNotificationDismissActionIdentifier {
+            if let notificationUuid = userInfo["notificationUuid"] as? String {
+                NotificationActionHelper().onActionClicked(notificationUuid: notificationUuid, actionId: actionIdentifier)
+            }
+        }
 
         if let value = userInfo["deepLinkUri"] as? String {
             // Check for the deep link URI here, which is only present if it was provided in the Alarmee(deepLinkUri: ...) creation.
