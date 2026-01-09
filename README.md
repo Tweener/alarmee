@@ -34,7 +34,7 @@ Be sure to show your support by starring ⭐️ this repository, and feel free t
 - 🔁 **Repeating alarm**: Schedule recurring alarms with intervals: hourly, daily, weekly, monthly, yearly or custom (providing a duration).
 - ⚡️ **Instant notifications**: Send notifications immediately without scheduling them.
 - ☁️ **Push notifications**: Handle remote notifications via FCM/APNs.
-- 🔘 **Action buttons**: Add interactive action buttons to notifications (Android).
+- 🔘 **Action buttons**: Add interactive action buttons to notifications (Android & iOS).
 - 🎨 **Extensible Configuration**: Customize alarms and notifications with platform-specific settings.
 
 ![Group 4](https://github.com/user-attachments/assets/4e455c6c-6d45-4ca6-b292-8f8e57d4f799)
@@ -449,9 +449,6 @@ If `badge = 0`, the badge will be cleared from the app icon. If `badge = null`, 
 ##### Notification action buttons
 You can add up to 3 action buttons to your notifications. When a user taps an action button, your app receives a callback with the action ID.
 
-> [!NOTE]
-> Action buttons are currently supported on **Android only**. iOS support will be added in a future release.
-
 **Adding action buttons to a notification:**
 ```kotlin
 localService.immediate(
@@ -473,7 +470,7 @@ localService.immediate(
 )
 ```
 
-**Handling action button clicks (Android):**
+**Handling action button clicks:**
 
 To receive callbacks when a user taps an action button, register a callback using the `onActionClicked` extension function:
 
@@ -494,8 +491,34 @@ alarmService.local.onActionClicked { event ->
 
 > [!IMPORTANT]
 > - Only one callback can be registered at a time. Subsequent calls replace the previous callback.
-> - Register the callback early in your app lifecycle (e.g., in `Application.onCreate()` or a `LaunchedEffect` in your root composable).
-> - When an action button is tapped, the notification is automatically dismissed.
+> - Register the callback early in your app lifecycle (e.g., in `Application.onCreate()` on Android or a `LaunchedEffect` in your root composable).
+> - On Android, the notification is automatically dismissed when an action button is tapped.
+
+<details>
+	<summary>🍎 iOS additional setup</summary>
+
+On iOS, you need to update your `AppDelegate.swift` to forward action button taps to the Alarmee callback registry:
+
+```swift
+import alarmee
+
+// In your AppDelegate class that conforms to UNUserNotificationCenterDelegate:
+
+func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    let userInfo = response.notification.request.content.userInfo
+    let actionIdentifier = response.actionIdentifier
+
+    // Handle notification action button taps
+    if actionIdentifier != UNNotificationDefaultActionIdentifier && actionIdentifier != UNNotificationDismissActionIdentifier {
+        if let notificationUuid = userInfo["notificationUuid"] as? String {
+            NotificationActionHelper().onActionClicked(notificationUuid: notificationUuid, actionId: actionIdentifier)
+        }
+    }
+
+    completionHandler()
+}
+```
+</details>
 
 ---
 
