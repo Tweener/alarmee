@@ -3,6 +3,9 @@
 ## [2.6.0] - January 9, 2026
 - ✨ **`[FEATURE]`**: Added notification action buttons support for both Android and iOS. Notifications can now display up to 3 action buttons that users can tap to trigger callbacks in your app.
 - 🛠 **`[IMPROVEMENT]`**: 🤖 On Android, added support for passing custom data from Firebase Cloud Messaging messages through the notification creation process and into the launched activity via intent extras.
+- 🔄 Update Kotlin to 2.3.0.
+- 🔄 Update Compose Multiplatform to 1.9.3.
+- 🔄 Update Gradle to 8.13.2.
 
 ## [2.5.2] - November 6, 2025
 - 🛠 **`[IMPROVMENT]`**: Refactored `MobileAlarmeeService` initialization methods for better clarity. Split the initialize method into two overloads: one accepting only `platformConfiguration` and another accepting both `platformConfiguration` and `Firebase` instance, improving flexibility and code organization.
