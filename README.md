@@ -45,7 +45,8 @@ Be sure to show your support by starring ⭐️ this repository, and feel free t
 
 Alarmee powers notifications in real-world apps:
 
-- [**KMPShip**](https://www.kmpship.app/): a Kotlin Multiplatform boilerplate to build mobile apps faster.
+- [**KMPShip**](https://www.kmpship.app/): a Kotlin Multiplatform boilerplate / starter-kit to build mobile apps faster.
+- [**Snappit**](https://www.snappit.co/): a daily video journaling app.
 - [**Bloomeo**](https://bloomeo.app/): a personal finance app.
 
 ---
