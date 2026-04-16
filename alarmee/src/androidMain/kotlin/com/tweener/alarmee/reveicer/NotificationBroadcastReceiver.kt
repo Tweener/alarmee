@@ -1,8 +1,11 @@
 package com.tweener.alarmee.reveicer
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
@@ -36,6 +39,7 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
         const val KEY_DEEP_LINK_URI = "notificationDeepLinkUri"
         const val KEY_IMAGE_URL = "notificationImageUrl"
         const val KEY_ACTIONS_JSON = "notificationActionsJson"
+        const val KEY_REPEAT_INTERVAL_MILLIS = "notificationRepeatIntervalMillis"
 
         val DEFAULT_ICON_RES_ID = R.drawable.ic_notification
         val DEFAULT_ICON_COLOR = Color.Transparent
@@ -52,6 +56,13 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                 intent.getStringExtra(KEY_TITLE),
                 intent.getStringExtra(KEY_BODY),
             ) { uuid, title, body ->
+                // Chain the next exact alarm before showing the notification,
+                // so the chain continues even if notification display fails.
+                val repeatIntervalMillis = intent.getLongExtra(KEY_REPEAT_INTERVAL_MILLIS, -1L)
+                if (repeatIntervalMillis > 0) {
+                    scheduleNextExactAlarm(context, intent, uuid, repeatIntervalMillis)
+                }
+
                 val priority = intent.getIntExtra(KEY_PRIORITY, DEFAULT_PRIORITY)
                 val iconResId = intent.getIntExtra(KEY_ICON_RES_ID, DEFAULT_ICON_RES_ID)
                 val iconColor = intent.getIntExtra(KEY_ICON_COLOR, DEFAULT_ICON_COLOR.toArgb())
@@ -93,6 +104,36 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Schedules the next exact alarm for repeating notifications.
+     * Uses one-shot exact chaining: after each alarm fires, the next one is scheduled.
+     * Falls back to inexact scheduling if the SCHEDULE_EXACT_ALARM permission was revoked.
+     */
+    private fun scheduleNextExactAlarm(context: Context, originalIntent: Intent, uuid: String, intervalMillis: Long) {
+        val nextTriggerMillis = System.currentTimeMillis() + intervalMillis
+
+        // Clone the intent preserving all extras (notification data + repeat interval)
+        val nextIntent = Intent(originalIntent).apply {
+            setClass(context, NotificationBroadcastReceiver::class.java)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            uuid.hashCode(),
+            nextIntent,
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextTriggerMillis, pendingIntent)
+        } else {
+            // Permission was revoked — fall back to inexact
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, nextTriggerMillis, pendingIntent)
         }
     }
 
