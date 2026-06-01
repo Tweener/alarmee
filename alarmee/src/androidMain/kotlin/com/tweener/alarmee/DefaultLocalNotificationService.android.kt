@@ -68,8 +68,6 @@ actual fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterv
     requirePlatformConfiguration(providedPlatformConfiguration = config, targetPlatformConfiguration = AlarmeeAndroidPlatformConfiguration::class)
     validateNotificationChannelId(alarmee = alarmee)
 
-    val pendingIntent = getPendingIntent(alarmee = alarmee, config = config)
-
     // Schedule the alarm according to the repeat interval
     val intervalMillis = when (repeatInterval) {
         is RepeatInterval.Hourly -> AlarmManager.INTERVAL_HOUR
@@ -82,7 +80,17 @@ actual fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterv
 
     applicationContext.getAlarmManager()?.let { alarmManager ->
         val triggerAtMillis = (alarmee.scheduledDateTime ?: LocalDateTime.now(timeZone = alarmee.timeZone)).toEpochMilliseconds(timeZone = alarmee.timeZone)
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, intervalMillis, pendingIntent)
+
+        if (config.useExactScheduling && canScheduleExactAlarms(alarmManager)) {
+            // Use exact one-shot alarm with chaining for precise timing.
+            // The receiver will reschedule the next occurrence after showing the notification.
+            // nextTriggerMillis anchors the chain to the original schedule grid to avoid drift.
+            val pendingIntent = getPendingIntent(alarmee = alarmee, config = config, repeatIntervalMillis = intervalMillis, nextTriggerMillis = triggerAtMillis + intervalMillis)
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+        } else {
+            val pendingIntent = getPendingIntent(alarmee = alarmee, config = config)
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAtMillis, intervalMillis, pendingIntent)
+        }
 
         // Notification scheduled successfully
         onSuccess()
@@ -212,7 +220,7 @@ private fun validateNotificationChannelId(alarmee: Alarmee) {
     }
 }
 
-private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfiguration): PendingIntent {
+private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfiguration, repeatIntervalMillis: Long? = null, nextTriggerMillis: Long? = null): PendingIntent {
     requirePlatformConfiguration(providedPlatformConfiguration = config, targetPlatformConfiguration = AlarmeeAndroidPlatformConfiguration::class)
 
     val priority = mapPriority(priority = alarmee.androidNotificationConfiguration.priority)
@@ -239,6 +247,17 @@ private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfigurat
         // Serialize actions to JSON
         if (alarmee.actions.isNotEmpty()) {
             putExtra(NotificationBroadcastReceiver.KEY_ACTIONS_JSON, serializeActions(alarmee.actions))
+        }
+
+        // For exact repeating: pass interval so receiver can chain the next alarm
+        if (repeatIntervalMillis != null) {
+            putExtra(NotificationBroadcastReceiver.KEY_REPEAT_INTERVAL_MILLIS, repeatIntervalMillis)
+        }
+
+        // For exact repeating: pass the intended trigger time of the next occurrence so the
+        // receiver can anchor the chain to the original schedule grid instead of drifting.
+        if (nextTriggerMillis != null) {
+            putExtra(NotificationBroadcastReceiver.KEY_NEXT_TRIGGER_MILLIS, nextTriggerMillis)
         }
     }
 
