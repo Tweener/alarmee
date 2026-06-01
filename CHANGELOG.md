@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.7.0] - June 2, 2026
+- ✨ **`[FEATURE]`**: Added cross-platform notification grouping support via a new `groupKey` field on `Alarmee` to bundle related notifications (🤖 Android notification groups via `setGroup`, 🍎 iOS notification threads via `threadIdentifier`). Wired through all Android paths (immediate, scheduled, and FCM push) and iOS. Also added an Android-only `isGroupSummary` flag on `AndroidNotificationConfiguration` to mark a notification as the group summary. (Closes [#54](https://github.com/Tweener/alarmee/issues/54))
+- ✨ **`[FEATURE]`**: 🍎 On iOS, added public `PushNotificationServiceRegistry#notifyTokenUpdated()` and `notifyIncomingMessage()` methods so host apps can bridge `AppDelegate`/`MessagingDelegate` callbacks (new token & incoming message) without accessing internal classes. (PR [#53](https://github.com/Tweener/alarmee/pull/53))
+- 🐛 **`[FIX]`**: 🤖 On Android, repeating alarms now respect the `useExactScheduling` flag. When enabled (and `SCHEDULE_EXACT_ALARM` is granted), repeating alarms use one-shot exact chaining via `setExactAndAllowWhileIdle()` instead of the inexact `setRepeating()`, gracefully falling back to `setAndAllowWhileIdle()` if the permission is revoked. (PR by [@BioRyajenka](https://github.com/BioRyajenka))
+- 🐛 **`[FIX]`**: 🤖 On Android, anchored the exact repeating alarm chain to the original schedule grid to prevent progressive drift caused by wakeup latency and Doze throttling, with catch-up logic to skip missed slots after long Doze/device-off periods instead of firing a burst. (PR [#55](https://github.com/Tweener/alarmee/pull/55))
+- 🔄 Update Kotlin to 2.3.21.
+- 🔄 Update Compose Multiplatform to 1.11.0.
+- 🔄 Update Gradle to 9.3.1.
+- 🔄 Update Android Gradle Plugin to 9.1.1.
+- 🔄 Update Coroutines to 1.11.0.
+- 🔄 Update KMPKit to 1.0.14.
+- 🔄 Update Android Activity to 1.13.0.
+- 🔄 Update Dokka to 2.2.0.
+
 ## [2.6.0] - January 9, 2026
 - ✨ **`[FEATURE]`**: Added notification action buttons support for both Android and iOS. Notifications can now display up to 3 action buttons that users can tap to trigger callbacks in your app.
 - 🛠 **`[IMPROVEMENT]`**: 🤖 On Android, added support for passing custom data from Firebase Cloud Messaging messages through the notification creation process and into the launched activity via intent extras.
