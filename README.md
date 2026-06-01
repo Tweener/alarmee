@@ -637,6 +637,82 @@ This callback receives the complete key-value payload from the push message, all
 
 **Note:** You can register multiple callbacks - all registered callbacks will be invoked when a push message is received.
 
+#### Bridging platform callbacks (iOS only)
+
+On **Android**, Alarmee receives new FCM tokens and incoming push messages automatically through its internal `FirebaseMessagingService` — there is nothing to wire up.
+
+On **iOS**, the host application owns the `AppDelegate` callbacks, so you must forward token updates and incoming messages to Alarmee. Use `PushNotificationServiceRegistry` to propagate these events — this triggers the `onNewToken` and `onPushMessageReceived` callbacks registered above:
+
+```kotlin
+import com.tweener.alarmee.PushNotificationServiceRegistry
+
+// Call when a new FCM token is generated:
+PushNotificationServiceRegistry.notifyTokenUpdated(token)
+
+// Call when a push message is received:
+PushNotificationServiceRegistry.notifyIncomingMessage(data)
+```
+
+A common pattern is to expose these through a small Kotlin helper that your Swift `AppDelegate` can call:
+
+```kotlin
+class AlarmeeHelper {
+
+    fun onNewToken(token: String) {
+        PushNotificationServiceRegistry.notifyTokenUpdated(token = token)
+    }
+
+    fun onNotificationReceived(userInfo: Map<Any?, *>?) {
+        val data = userInfo
+            ?.mapNotNull { (key, value) ->
+                val k = key?.toString()
+                val v = value?.toString()
+                if (k != null && v != null) k to v else null
+            }
+            ?.toMap()
+            ?: emptyMap()
+
+        PushNotificationServiceRegistry.notifyIncomingMessage(data = data)
+    }
+}
+```
+
+Then wire it up in your `AppDelegate.swift`:
+
+```swift
+import FirebaseMessaging
+import composeApp
+
+// In your AppDelegate class that conforms to UNUserNotificationCenterDelegate and MessagingDelegate:
+
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    UNUserNotificationCenter.current().delegate = self
+    Messaging.messaging().delegate = self
+    return true
+}
+
+func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    Messaging.messaging().apnsToken = deviceToken
+}
+
+// Forward new FCM tokens to Alarmee:
+func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+    guard let fcmToken else { return }
+    AlarmeeHelper().onNewToken(token: fcmToken)
+}
+
+// Forward incoming push messages to Alarmee:
+func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
+    AlarmeeHelper().onNotificationReceived(userInfo: userInfo)
+    return UIBackgroundFetchResult.newData
+}
+
+func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    AlarmeeHelper().onNotificationReceived(userInfo: notification.request.content.userInfo)
+    completionHandler([.banner, .list, .badge, .sound])
+}
+```
+
 #### Add the Notification Service Extension (iOS only)
 
 To display images in push notifications on iOS, create a **Notification Service Extension** and paste the provided `NotificationService.swift` file:

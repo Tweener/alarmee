@@ -21,8 +21,9 @@ interface PushNotificationService {
     /**
      * Handles a push message received from the platform.
      * This function parses the payload and shows a local notification.
-     * 
-     * Note: This method is intended for internal platform use only.
+     *
+     * Note: This method is intended for internal platform use. To propagate an incoming push message from
+     * platform code (e.g. iOS `AppDelegate`), prefer [PushNotificationServiceRegistry.notifyIncomingMessage].
      *
      * @param data The key-value payload of the remote push message.
      */

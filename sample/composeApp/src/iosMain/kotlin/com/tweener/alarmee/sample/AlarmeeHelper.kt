@@ -19,7 +19,16 @@ class AlarmeeHelper {
             ?.toMap()
             ?: emptyMap()
 
-        PushNotificationServiceRegistry.get()?.handleIncomingMessage(data = parsed)
+        PushNotificationServiceRegistry.notifyIncomingMessage(data = parsed)
+    }
+
+    /**
+     * Called from Swift (e.g. from `AppDelegate`) when a new FCM token is generated.
+     *
+     * @param token The new FCM token.
+     */
+    fun onNewToken(token: String) {
+        PushNotificationServiceRegistry.notifyTokenUpdated(token = token)
     }
 
     /**

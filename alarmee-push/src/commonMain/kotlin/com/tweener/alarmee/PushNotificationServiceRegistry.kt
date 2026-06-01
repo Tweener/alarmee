@@ -32,6 +32,32 @@ object PushNotificationServiceRegistry {
     }
 
     /**
+     * Notifies the registered [PushNotificationService] that a new FCM token has been generated.
+     *
+     * On Android this is handled internally by Alarmee, but on iOS the host application is responsible
+     * for bridging platform callbacks (e.g. from `AppDelegate`). Call this from iOS platform code when a
+     * new token is received so the `onNewToken` callbacks are triggered.
+     *
+     * @param token The new FCM token.
+     */
+    fun notifyTokenUpdated(token: String) {
+        (service as? DefaultPushNotificationService)?.notifyTokenUpdated(token)
+    }
+
+    /**
+     * Notifies the registered [PushNotificationService] that a push message has been received.
+     *
+     * On Android this is handled internally by Alarmee, but on iOS the host application is responsible
+     * for bridging platform callbacks (e.g. from `AppDelegate`). Call this from iOS platform code when a
+     * push message is received so the `onPushMessageReceived` callbacks are triggered.
+     *
+     * @param data The key-value payload of the remote push message.
+     */
+    fun notifyIncomingMessage(data: Map<String, String>) {
+        service?.handleIncomingMessage(data)
+    }
+
+    /**
      * Registers a [PushNotificationService]. This is called internally by the Alarmee library.
      */
     internal fun register(service: PushNotificationService) {

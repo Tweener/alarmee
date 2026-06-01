@@ -55,12 +55,8 @@ internal actual suspend fun forceFirebaseTokenRefresh(): String =
         
         // On iOS, Firebase doesn't automatically trigger the delegate callback for manual token refresh
         // So we need to manually notify the service
-        PushNotificationServiceRegistry.get()?.let { service ->
-            if (service is DefaultPushNotificationService) {
-                service.notifyTokenUpdated(newToken)
-            }
-        }
-        
+        PushNotificationServiceRegistry.notifyTokenUpdated(newToken)
+
         newToken
     } catch (throwable: Throwable) {
         throw throwable
