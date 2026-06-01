@@ -41,14 +41,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9A9834E92CF71B2C00689828 /* Exceptions for "iosApp" folder in "iosApp" target */ = {
+		9A9834E92CF71B2C00689828 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 9A9834D52CF7187F00689828 /* iosApp */;
 		};
-		9AFC04D02E1ACD90003FE705 /* Exceptions for "AlarmeeNotificationService" folder in "AlarmeeNotificationService" target */ = {
+		9AFC04D02E1ACD90003FE705 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -61,7 +61,7 @@
 		9A9834D82CF7187F00689828 /* iosApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				9A9834E92CF71B2C00689828 /* Exceptions for "iosApp" folder in "iosApp" target */,
+				9A9834E92CF71B2C00689828 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -69,7 +69,7 @@
 		9AFC04C52E1ACD90003FE705 /* AlarmeeNotificationService */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				9AFC04D02E1ACD90003FE705 /* Exceptions for "AlarmeeNotificationService" folder in "AlarmeeNotificationService" target */,
+				9AFC04D02E1ACD90003FE705 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
 			);
 			path = AlarmeeNotificationService;
 			sourceTree = "<group>";
@@ -239,7 +239,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/../..\"\n./gradlew :sample:composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/../..\"\n./gradlew :sample:composeApp:embedAndSignAppleFrameworkForXcode";
 		};
 /* End PBXShellScriptBuildPhase section */
 
