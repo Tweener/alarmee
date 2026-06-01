@@ -134,6 +134,7 @@ private fun configureNotification(uuid: String, alarmee: Alarmee, notificationTr
         setBody(alarmee.notificationBody)
         alarmee.iosNotificationConfiguration.soundFilename?.let { setSound(UNNotificationSound.soundNamed(name = it)) }
         alarmee.iosNotificationConfiguration.badge?.let { setBadge(NSNumber(int = it)) }
+        alarmee.groupKey?.let { setThreadIdentifier(it) } // Groups related notifications together in Notification Center
         setUserInfo(userInfo)
 
         // Add the image as attachment if available

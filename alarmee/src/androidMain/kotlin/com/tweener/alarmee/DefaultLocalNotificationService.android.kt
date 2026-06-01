@@ -160,6 +160,8 @@ actual fun immediateAlarm(alarmee: Alarmee, config: AlarmeePlatformConfiguration
                 soundFilename = config.notificationChannels.firstOrNull { it.id == channelId }?.soundFilename,
                 deepLinkUri = alarmee.deepLinkUri,
                 imageUrl = alarmee.imageUrl,
+                groupKey = alarmee.groupKey,
+                isGroupSummary = alarmee.androidNotificationConfiguration.isGroupSummary,
                 notificationUuid = alarmee.uuid,
                 actions = alarmee.actions,
             )
@@ -243,6 +245,8 @@ private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfigurat
         putExtra(NotificationBroadcastReceiver.KEY_SOUND_FILENAME, soundFilename)
         putExtra(NotificationBroadcastReceiver.KEY_DEEP_LINK_URI, alarmee.deepLinkUri)
         putExtra(NotificationBroadcastReceiver.KEY_IMAGE_URL, alarmee.imageUrl)
+        putExtra(NotificationBroadcastReceiver.KEY_GROUP_KEY, alarmee.groupKey)
+        putExtra(NotificationBroadcastReceiver.KEY_IS_GROUP_SUMMARY, alarmee.androidNotificationConfiguration.isGroupSummary)
 
         // Serialize actions to JSON
         if (alarmee.actions.isNotEmpty()) {

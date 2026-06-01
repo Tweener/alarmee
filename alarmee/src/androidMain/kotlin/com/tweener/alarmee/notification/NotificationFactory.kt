@@ -26,6 +26,7 @@ class NotificationFactory {
 
         const val DEEP_LINK_URI_PARAM = "deepLinkUri"
         const val IMAGE_URL_PARAM = "imageUrl"
+        const val GROUP_KEY_PARAM = "groupKey"
 
         suspend fun create(
             context: Context,
@@ -38,6 +39,8 @@ class NotificationFactory {
             soundFilename: String? = null,
             deepLinkUri: String? = null,
             imageUrl: String? = null,
+            groupKey: String? = null,
+            isGroupSummary: Boolean = false,
             customData: Map<String, String>? = null,
             notificationUuid: String? = null,
             actions: List<NotificationAction> = emptyList(),
@@ -56,6 +59,12 @@ class NotificationFactory {
                     setAutoCancel(true)
                     soundFilename?.let { setSound(context.getRawUri(it)) } // Ignored on Android 8.0 and higher in favor of the value set on the notification's channel
                     setContentIntent(getPendingIntent(context = context, deepLinkUri = deepLinkUri, customData = customData)) // Handles click on notification
+
+                    // Group related notifications together. On API 24+ the system auto-bundles notifications sharing the same group key.
+                    groupKey?.let {
+                        setGroup(it)
+                        setGroupSummary(isGroupSummary)
+                    }
 
                     bitmap?.let {
                         setLargeIcon(it)

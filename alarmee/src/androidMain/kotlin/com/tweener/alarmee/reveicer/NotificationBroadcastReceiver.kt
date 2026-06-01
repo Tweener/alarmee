@@ -38,6 +38,8 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
         const val KEY_SOUND_FILENAME = "notificationSoundFilename"
         const val KEY_DEEP_LINK_URI = "notificationDeepLinkUri"
         const val KEY_IMAGE_URL = "notificationImageUrl"
+        const val KEY_GROUP_KEY = "notificationGroupKey"
+        const val KEY_IS_GROUP_SUMMARY = "notificationIsGroupSummary"
         const val KEY_ACTIONS_JSON = "notificationActionsJson"
         const val KEY_REPEAT_INTERVAL_MILLIS = "notificationRepeatIntervalMillis"
         const val KEY_NEXT_TRIGGER_MILLIS = "notificationNextTriggerMillis"
@@ -70,6 +72,8 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                 val soundFilename = intent.getStringExtra(KEY_SOUND_FILENAME)
                 val deepLinkUri = intent.getStringExtra(KEY_DEEP_LINK_URI)
                 val imageUrl = intent.getStringExtra(KEY_IMAGE_URL)
+                val groupKey = intent.getStringExtra(KEY_GROUP_KEY)
+                val isGroupSummary = intent.getBooleanExtra(KEY_IS_GROUP_SUMMARY, false)
                 val actionsJson = intent.getStringExtra(KEY_ACTIONS_JSON)
 
                 // Deserialize actions
@@ -91,6 +95,8 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                         soundFilename = soundFilename,
                         deepLinkUri = deepLinkUri,
                         imageUrl = imageUrl,
+                        groupKey = groupKey,
+                        isGroupSummary = isGroupSummary,
                         notificationUuid = uuid,
                         actions = actions,
                     )

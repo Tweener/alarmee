@@ -20,6 +20,7 @@ import kotlinx.datetime.TimeZone
  * @property repeatInterval The optional interval at which the alarm should repeat (e.g., hourly, daily, weekly). If `null`, the alarm will not repeat.
  * @property deepLinkUri An optional URI that can be used to open a specific screen in the app when the notification is tapped. This is useful for deep linking into the app.
  * @property imageUrl An optional URL for an image to be displayed in the notification. This can enhance the visual appeal of the notification.
+ * @property groupKey An optional key used to group related notifications together. Notifications sharing the same key are bundled by the system (Android: notification group via `setGroup`; iOS: thread via `threadIdentifier`). If `null`, the notification is not grouped.
  * @property actions A list of action buttons to display on the notification. Android supports up to 3 action buttons; any extras will be ignored.
  * @property androidNotificationConfiguration Configuration specific to Android notifications.
  * @property iosNotificationConfiguration Configuration specific to iOS notifications.
@@ -36,6 +37,7 @@ data class Alarmee(
     val repeatInterval: RepeatInterval? = null,
     val deepLinkUri: String? = null,
     val imageUrl: String? = null,
+    val groupKey: String? = null,
     val actions: List<NotificationAction> = emptyList(),
     val androidNotificationConfiguration: AndroidNotificationConfiguration,
     val iosNotificationConfiguration: IosNotificationConfiguration,
@@ -48,12 +50,14 @@ data class Alarmee(
  * @property channelId The notification channel to post the notification on. Required for Android 8.0 (API level 26) and above.
  * @property iconResId The resource ID of the icon to display in the notification.
  * @property iconColor The color of the icon to display in the notification.
+ * @property isGroupSummary Whether this notification acts as the summary of its [Alarmee.groupKey] group. The summary represents the whole bundle when collapsed. Only one notification per group should be marked as the summary. Has no effect if [Alarmee.groupKey] is `null`, and is ignored on non-Android platforms.
  */
 data class AndroidNotificationConfiguration(
     val priority: AndroidNotificationPriority = DEFAULT,
     val channelId: String? = null,
     val iconResId: Int? = null,
     val iconColor: Color? = null,
+    val isGroupSummary: Boolean = false,
 )
 
 /**

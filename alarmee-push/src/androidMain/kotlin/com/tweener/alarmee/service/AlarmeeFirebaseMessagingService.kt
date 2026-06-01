@@ -9,6 +9,7 @@ import com.tweener.alarmee.DefaultPushNotificationService
 import com.tweener.alarmee.PushNotificationServiceRegistry
 import com.tweener.alarmee.notification.NotificationFactory
 import com.tweener.alarmee.notification.NotificationFactory.Companion.DEEP_LINK_URI_PARAM
+import com.tweener.alarmee.notification.NotificationFactory.Companion.GROUP_KEY_PARAM
 import com.tweener.alarmee.notification.NotificationFactory.Companion.IMAGE_URL_PARAM
 import com.tweener.alarmee.reveicer.NotificationBroadcastReceiver.Companion.DEFAULT_ICON_COLOR
 import com.tweener.alarmee.reveicer.NotificationBroadcastReceiver.Companion.DEFAULT_ICON_RES_ID
@@ -54,6 +55,7 @@ internal class AlarmeeFirebaseMessagingService : FirebaseMessagingService() {
         safeLet(message.data[TITLE_PAYLOAD_PARAM], message.data[BODY_PAYLOAD_PARAM]) { title, body ->
             val deepLinkUri = message.data[DEEP_LINK_URI_PARAM]
             val imageUrl = message.data[IMAGE_URL_PARAM]
+            val groupKey = message.data[GROUP_KEY_PARAM]
 
             scope.launch {
                 val notification = NotificationFactory.create(
@@ -66,6 +68,7 @@ internal class AlarmeeFirebaseMessagingService : FirebaseMessagingService() {
                     iconColor = DEFAULT_ICON_COLOR.toArgb(),
                     deepLinkUri = deepLinkUri,
                     imageUrl = imageUrl,
+                    groupKey = groupKey,
                     customData = message.data,
                 )
 

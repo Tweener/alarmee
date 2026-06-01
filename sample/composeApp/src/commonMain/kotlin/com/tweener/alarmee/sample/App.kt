@@ -177,6 +177,55 @@ fun App() {
                 }) { Text("Send a notification with actions") }
 
                 Button(onClick = {
+                    val groupKey = "chat_messages"
+
+                    // Two notifications sharing the same group key are bundled together (Android group / iOS thread)
+                    alarmService.local.immediate(
+                        alarmee = Alarmee(
+                            uuid = "groupedNotification1",
+                            notificationTitle = "📩 Alice",
+                            notificationBody = "Hey, are we still on for lunch?",
+                            groupKey = groupKey,
+                            androidNotificationConfiguration = AndroidNotificationConfiguration(
+                                priority = AndroidNotificationPriority.HIGH,
+                                channelId = "immediateChannelId",
+                            ),
+                            iosNotificationConfiguration = IosNotificationConfiguration(),
+                        )
+                    )
+
+                    alarmService.local.immediate(
+                        alarmee = Alarmee(
+                            uuid = "groupedNotification2",
+                            notificationTitle = "📩 Bob",
+                            notificationBody = "Don't forget to send me the report!",
+                            groupKey = groupKey,
+                            androidNotificationConfiguration = AndroidNotificationConfiguration(
+                                priority = AndroidNotificationPriority.HIGH,
+                                channelId = "immediateChannelId",
+                            ),
+                            iosNotificationConfiguration = IosNotificationConfiguration(),
+                        )
+                    )
+
+                    // Optional summary notification representing the whole group when collapsed (Android only; ignored on iOS)
+                    alarmService.local.immediate(
+                        alarmee = Alarmee(
+                            uuid = "groupedNotificationSummary",
+                            notificationTitle = "📨 New messages",
+                            notificationBody = "You have 2 new messages.",
+                            groupKey = groupKey,
+                            androidNotificationConfiguration = AndroidNotificationConfiguration(
+                                priority = AndroidNotificationPriority.HIGH,
+                                channelId = "immediateChannelId",
+                                isGroupSummary = true,
+                            ),
+                            iosNotificationConfiguration = IosNotificationConfiguration(),
+                        )
+                    )
+                }) { Text("Send grouped notifications") }
+
+                Button(onClick = {
                     scope.launch {
                         alarmService.push.let { pushService ->
                             pushService.getToken()

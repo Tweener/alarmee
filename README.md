@@ -35,6 +35,7 @@ Be sure to show your support by starring ⭐️ this repository, and feel free t
 - ⚡️ **Instant notifications**: Send notifications immediately without scheduling them.
 - ☁️ **Push notifications**: Handle remote notifications via FCM/APNs.
 - 🔘 **Action buttons**: Add interactive action buttons to notifications (Android & iOS).
+- 🗂️ **Notification grouping**: Bundle related notifications together (Android notification groups & iOS threads).
 - 🎨 **Extensible Configuration**: Customize alarms and notifications with platform-specific settings.
 
 ![Group 4](https://github.com/user-attachments/assets/4e455c6c-6d45-4ca6-b292-8f8e57d4f799)
@@ -521,6 +522,37 @@ func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive respo
 ```
 </details>
 
+##### Notification grouping
+You can bundle related notifications together by giving them the same `groupKey`. On Android, notifications sharing a key are displayed as a [notification group](https://developer.android.com/develop/ui/views/notifications/group); on iOS, they are grouped by [thread](https://developer.apple.com/documentation/usernotifications/unmutablenotificationcontent/threadidentifier) in Notification Center. The same `groupKey` works across both platforms.
+
+```kotlin
+localService.immediate(
+    alarmee = Alarmee(
+        uuid = "newMessage_42",
+        notificationTitle = "📩 New Message",
+        notificationBody = "You have a new message!",
+        groupKey = "chat_messages", // Notifications sharing this key are bundled together
+        androidNotificationConfiguration = AndroidNotificationConfiguration(
+            priority = AndroidNotificationPriority.HIGH,
+            channelId = "messagesChannelId",
+        ),
+        iosNotificationConfiguration = IosNotificationConfiguration(),
+    )
+)
+```
+
+On Android only, you can optionally post a dedicated **summary** notification that represents the whole bundle when collapsed by setting `isGroupSummary = true` on one notification of the group (`isGroupSummary` is ignored on other platforms):
+
+```kotlin
+androidNotificationConfiguration = AndroidNotificationConfiguration(
+    channelId = "messagesChannelId",
+    isGroupSummary = true, // Marks this notification as the summary of its group
+)
+```
+
+> [!NOTE]
+> For push notifications, add a `groupKey` entry to the message `data` payload to group incoming remote notifications.
+
 ---
 
 ### Push Notification Service
@@ -648,7 +680,8 @@ Replace `{YOUR_PROJECT_ID}` with your Firebase project ID.
       "title": "Title for Android",
       "body": "This is the body of the Android notification",
       "deepLinkUri": "app://open/target", // Used on both Android & iOS
-      "imageUrl": "https://rickandmortyapi.com/api/character/avatar/1.jpeg" // Used on both Android & iOS
+      "imageUrl": "https://rickandmortyapi.com/api/character/avatar/1.jpeg", // Used on both Android & iOS
+      "groupKey": "chat_messages" // Android: groups notifications together (on iOS, use `apns.payload.aps.thread-id` instead)
     }
   }
 }
@@ -657,6 +690,7 @@ Replace `{YOUR_PROJECT_ID}` with your Firebase project ID.
 - **`token`**: the FCM token of the target device.
 - **`apns.payload.aps.mutable-content`**: required for displaying images on iOS.
 - **`data.imageUrl`**: optional parameter to display an image within the notification.
+- **`data.groupKey`**: optional parameter to bundle related notifications on Android. On iOS, set the standard APNs `apns.payload.aps.thread-id` field instead.
 - **`apns.headers.apns-priority = 10`** ensures the push is delivered immediately.
 
 ##### Authentication (Bearer Token)
