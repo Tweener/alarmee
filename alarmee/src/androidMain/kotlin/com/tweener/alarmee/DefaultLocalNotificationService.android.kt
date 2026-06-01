@@ -84,7 +84,8 @@ actual fun scheduleRepeatingAlarm(alarmee: Alarmee, repeatInterval: RepeatInterv
         if (config.useExactScheduling && canScheduleExactAlarms(alarmManager)) {
             // Use exact one-shot alarm with chaining for precise timing.
             // The receiver will reschedule the next occurrence after showing the notification.
-            val pendingIntent = getPendingIntent(alarmee = alarmee, config = config, repeatIntervalMillis = intervalMillis)
+            // nextTriggerMillis anchors the chain to the original schedule grid to avoid drift.
+            val pendingIntent = getPendingIntent(alarmee = alarmee, config = config, repeatIntervalMillis = intervalMillis, nextTriggerMillis = triggerAtMillis + intervalMillis)
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
         } else {
             val pendingIntent = getPendingIntent(alarmee = alarmee, config = config)
@@ -219,7 +220,7 @@ private fun validateNotificationChannelId(alarmee: Alarmee) {
     }
 }
 
-private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfiguration, repeatIntervalMillis: Long? = null): PendingIntent {
+private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfiguration, repeatIntervalMillis: Long? = null, nextTriggerMillis: Long? = null): PendingIntent {
     requirePlatformConfiguration(providedPlatformConfiguration = config, targetPlatformConfiguration = AlarmeeAndroidPlatformConfiguration::class)
 
     val priority = mapPriority(priority = alarmee.androidNotificationConfiguration.priority)
@@ -251,6 +252,12 @@ private fun getPendingIntent(alarmee: Alarmee, config: AlarmeePlatformConfigurat
         // For exact repeating: pass interval so receiver can chain the next alarm
         if (repeatIntervalMillis != null) {
             putExtra(NotificationBroadcastReceiver.KEY_REPEAT_INTERVAL_MILLIS, repeatIntervalMillis)
+        }
+
+        // For exact repeating: pass the intended trigger time of the next occurrence so the
+        // receiver can anchor the chain to the original schedule grid instead of drifting.
+        if (nextTriggerMillis != null) {
+            putExtra(NotificationBroadcastReceiver.KEY_NEXT_TRIGGER_MILLIS, nextTriggerMillis)
         }
     }
 

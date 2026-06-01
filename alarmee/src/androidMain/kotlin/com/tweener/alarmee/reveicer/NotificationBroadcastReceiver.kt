@@ -40,6 +40,7 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
         const val KEY_IMAGE_URL = "notificationImageUrl"
         const val KEY_ACTIONS_JSON = "notificationActionsJson"
         const val KEY_REPEAT_INTERVAL_MILLIS = "notificationRepeatIntervalMillis"
+        const val KEY_NEXT_TRIGGER_MILLIS = "notificationNextTriggerMillis"
 
         val DEFAULT_ICON_RES_ID = R.drawable.ic_notification
         val DEFAULT_ICON_COLOR = Color.Transparent
@@ -113,11 +114,27 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
      * Falls back to inexact scheduling if the SCHEDULE_EXACT_ALARM permission was revoked.
      */
     private fun scheduleNextExactAlarm(context: Context, originalIntent: Intent, uuid: String, intervalMillis: Long) {
-        val nextTriggerMillis = System.currentTimeMillis() + intervalMillis
+        val now = System.currentTimeMillis()
 
-        // Clone the intent preserving all extras (notification data + repeat interval)
+        // Anchor the next trigger to the original schedule grid to avoid drift. Each alarm fires
+        // slightly late (Doze wakeup latency, processing, exact-alarm throttling); computing the
+        // next trigger from the actual receive time would let that error accumulate over time.
+        // Fall back to now-based scheduling if the anchor is missing (e.g. an older chained intent).
+        val anchoredNext = originalIntent.getLongExtra(KEY_NEXT_TRIGGER_MILLIS, -1L)
+        var nextTriggerMillis = if (anchoredNext > 0) anchoredNext else now + intervalMillis
+
+        // Catch up: if one or more occurrences were missed (device asleep/off, long Doze), skip
+        // forward to the next future slot on the grid instead of firing a burst of past alarms.
+        if (nextTriggerMillis <= now) {
+            val missedIntervals = (now - nextTriggerMillis) / intervalMillis + 1
+            nextTriggerMillis += missedIntervals * intervalMillis
+        }
+
+        // Clone the intent preserving all extras (notification data + repeat interval), updating
+        // the anchor to the occurrence that follows the one we're scheduling now.
         val nextIntent = Intent(originalIntent).apply {
             setClass(context, NotificationBroadcastReceiver::class.java)
+            putExtra(KEY_NEXT_TRIGGER_MILLIS, nextTriggerMillis + intervalMillis)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
