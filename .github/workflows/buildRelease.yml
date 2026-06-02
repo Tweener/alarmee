@@ -11,7 +11,7 @@ jobs:
         include:
           - target: iosSimulatorArm64Test
             os: macos-14
-          - target: testReleaseUnitTest
+          - target: testDebugUnitTest
             os: ubuntu-latest
     runs-on: ${{ matrix.os }}
 
