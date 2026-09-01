@@ -6,42 +6,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.jetbrains.compose)
     alias(libs.plugins.jetbrains.compose.compiler)
     alias(libs.plugins.dokka)
     alias(libs.plugins.kotlin.nativeCocoaPods)
     alias(libs.plugins.maven.publish)
-}
-
-android {
-    namespace = ProjectConfiguration.Alarmee.namespace
-    compileSdk = ProjectConfiguration.Alarmee.compileSDK
-
-    defaultConfig {
-        minSdk = ProjectConfiguration.Alarmee.minSDK
-
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-
-        getByName("debug") {
-        }
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    compileOptions {
-        sourceCompatibility = ProjectConfiguration.Compiler.javaCompatibility
-        targetCompatibility = ProjectConfiguration.Compiler.javaCompatibility
-    }
 }
 
 kotlin {
@@ -56,8 +26,18 @@ kotlin {
         }
     }
 
-    androidTarget {
-        publishLibraryVariants("release")
+    android {
+        namespace = ProjectConfiguration.Alarmee.namespace
+        compileSdk = ProjectConfiguration.Alarmee.compileSDK
+        minSdk = ProjectConfiguration.Alarmee.minSDK
+
+        // The library ships drawables (ic_notification), which the KMP Android plugin doesn't package by default.
+        androidResources.enable = true
+
+        optimization {
+            consumerKeepRules.file("consumer-rules.pro")
+            consumerKeepRules.publish = true
+        }
 
         compilerOptions {
             jvmTarget.set(JvmTarget.fromTarget(ProjectConfiguration.Compiler.jvmTarget))

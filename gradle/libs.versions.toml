@@ -1,16 +1,17 @@
 [versions]
-kotlin = "2.3.21"
+kotlin = "2.4.10"
 gradle = "9.1.1"
-composeMultiplatform = "1.11.0"
+composeMultiplatform = "1.12.0"
 material3 = "1.9.0"
-dependencyVersionsPlugin = "0.54.0"
-mavenPublish = "0.36.0"
+dependencyVersionsPlugin = "0.61.0"
+mavenPublish = "0.37.0"
 dokka = "2.2.0"
 coroutines = "1.11.0"
 kmpKit = "1.0.14"
 androidActivity = "1.13.0"
-firebaseGitLiveApp = "2.4.0" # Firebase for KMP https://firebaseopensource.com/projects/gitliveapp/firebase-kotlin-sdk/
-googleServicesPlugin = "4.4.4"
+firebaseGitLiveApp = "2.5.0" # Firebase for KMP https://firebaseopensource.com/projects/gitliveapp/firebase-kotlin-sdk/ - kept in step with Passage: 2.6.0 moves to Firebase BoM 34, which dropped the -ktx artifacts
+googleServicesPlugin = "4.5.0"
+firebaseBom = "33.15.0" # Firebase Android BoM used by GitLive firebaseGitLiveApp above
 androidStartup = "1.2.0"
 
 [libraries]
@@ -23,6 +24,7 @@ android-startup = { group = "androidx.startup", name = "startup-runtime", versio
 
 firebase-messaging = { group = "dev.gitlive", name = "firebase-messaging", version.ref = "firebaseGitLiveApp" }
 firebase-installations = { group = "dev.gitlive", name = "firebase-installations", version.ref = "firebaseGitLiveApp" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 
 [bundles]
 gitlive-firebase = ["firebase-messaging", "firebase-installations"]
@@ -30,7 +32,7 @@ gitlive-firebase = ["firebase-messaging", "firebase-installations"]
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 android-application = { id = "com.android.application", version.ref = "gradle" }
-android-library = { id = "com.android.library", version.ref = "gradle" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "gradle" }
 dependency-versions = { id = "com.github.ben-manes.versions", version.ref = "dependencyVersionsPlugin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

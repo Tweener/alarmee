@@ -2,6 +2,15 @@
 
 ## [2.7.1] - September 1, 2026
 - 🐛 **`[FIX]`**: 🤖 On Android, push notifications now use the `notificationIconResId` and `notificationIconColor` set on `AlarmeeAndroidPlatformConfiguration`. `AlarmeeFirebaseMessagingService` hardcoded Alarmee's own bundled icon and a transparent tint, so a remote message ignored the app's configuration entirely - local notifications were already honouring it. The configuration is remembered on `initialize()` (by resource NAME, since ids shift between builds) so it is still available when Firebase starts the app for a message and `initialize()` has not run.
+- 🛠 **`[IMPROVEMENT]`**: 🤖 Migrated the Android side of both modules to the `com.android.kotlin.multiplatform.library` plugin, replacing the `com.android.library` + `androidTarget` pair. `androidResources` is enabled explicitly on `:alarmee`, which is what keeps the bundled `ic_notification` drawable in the published artifact.
+- 🐛 **`[FIX]`**: 🤖 Pinned the Firebase Android BoM (33.15.0) in `:alarmee-push`. GitLive's Android artifacts name the `com.google.firebase` SDKs with no version and carry the BoM in their runtime elements only, so the compile classpath had nothing to resolve them with.
+- 🔄 Update GitLive Firebase to 2.5.0. Held there deliberately: 2.6.0 imports Firebase BoM 34, which dropped the `-ktx` artifacts and would force that migration on every consuming app. Matches the version Passage ships.
+- 🔄 Update Kotlin to 2.4.10.
+- 🔄 Update Compose Multiplatform to 1.12.0.
+- 🔄 Update compileSdk to 37.
+- 🔄 Update Google Services plugin to 4.5.0.
+- 🔄 Update Maven Publish plugin to 0.37.0.
+- 🔄 Update Gradle Versions plugin to 0.61.0.
 
 ## [2.7.0] - June 2, 2026
 - ✨ **`[FEATURE]`**: Added cross-platform notification grouping support via a new `groupKey` field on `Alarmee` to bundle related notifications (🤖 Android notification groups via `setGroup`, 🍎 iOS notification threads via `threadIdentifier`). Wired through all Android paths (immediate, scheduled, and FCM push) and iOS. Also added an Android-only `isGroupSummary` flag on `AndroidNotificationConfiguration` to mark a notification as the group summary. (Closes [#54](https://github.com/Tweener/alarmee/issues/54))

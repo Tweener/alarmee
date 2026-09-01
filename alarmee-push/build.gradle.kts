@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.jetbrains.compose)
     alias(libs.plugins.jetbrains.compose.compiler)
     alias(libs.plugins.dokka)
@@ -13,42 +13,19 @@ plugins {
     alias(libs.plugins.maven.publish)
 }
 
-android {
-    namespace = ProjectConfiguration.Alarmee.namespace + ".push"
-    compileSdk = ProjectConfiguration.Alarmee.compileSDK
-
-    defaultConfig {
-        minSdk = ProjectConfiguration.Alarmee.minSDK
-
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-
-        getByName("debug") {
-        }
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    compileOptions {
-        sourceCompatibility = ProjectConfiguration.Compiler.javaCompatibility
-        targetCompatibility = ProjectConfiguration.Compiler.javaCompatibility
-    }
-}
-
 kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate()
 
-    androidTarget {
-        publishLibraryVariants("release")
+    android {
+        namespace = ProjectConfiguration.Alarmee.namespace + ".push"
+        compileSdk = ProjectConfiguration.Alarmee.compileSDK
+        minSdk = ProjectConfiguration.Alarmee.minSDK
+
+        optimization {
+            consumerKeepRules.file("consumer-rules.pro")
+            consumerKeepRules.publish = true
+        }
 
         compilerOptions {
             jvmTarget.set(JvmTarget.fromTarget(ProjectConfiguration.Compiler.jvmTarget))
@@ -80,6 +57,12 @@ kotlin {
             implementation(libs.kmpkit)
             implementation(compose.foundation)
             implementation(libs.bundles.gitlive.firebase)
+        }
+
+        androidMain.dependencies {
+            // Firebase (BoM pins the transitive com.google.firebase artifact versions
+            // that GitLive's firebase-messaging leaves unversioned on the compile classpath)
+            implementation(project.dependencies.platform(libs.firebase.bom))
         }
     }
 }

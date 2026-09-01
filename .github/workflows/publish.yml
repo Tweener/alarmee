@@ -25,7 +25,7 @@ jobs:
             os: macos-14
           - target: publishIosSimulatorArm64PublicationToMavenCentralRepository
             os: macos-14
-          - target: publishAndroidReleasePublicationToMavenCentralRepository
+          - target: publishAndroidPublicationToMavenCentralRepository
             os: ubuntu-latest
           - target: publishJsPublicationToMavenCentralRepository
             os: ubuntu-latest
