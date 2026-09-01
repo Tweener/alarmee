@@ -1,17 +1,15 @@
 package com.tweener.alarmee.service
 
-import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.tweener.alarmee.DEFAULT_NOTIFICATION_CHANNEL_ID
 import com.tweener.alarmee.PushNotificationServiceRegistry
+import com.tweener.alarmee._internal.NotificationAppearance
 import com.tweener.alarmee.notification.NotificationFactory
 import com.tweener.alarmee.notification.NotificationFactory.Companion.DEEP_LINK_URI_PARAM
 import com.tweener.alarmee.notification.NotificationFactory.Companion.GROUP_KEY_PARAM
 import com.tweener.alarmee.notification.NotificationFactory.Companion.IMAGE_URL_PARAM
-import com.tweener.alarmee.reveicer.NotificationBroadcastReceiver.Companion.DEFAULT_ICON_COLOR
-import com.tweener.alarmee.reveicer.NotificationBroadcastReceiver.Companion.DEFAULT_ICON_RES_ID
 import com.tweener.kmpkit.kotlinextensions.getNotificationManager
 import com.tweener.kmpkit.utils.safeLet
 import kotlinx.coroutines.CoroutineScope
@@ -59,8 +57,10 @@ internal class AlarmeeFirebaseMessagingService : FirebaseMessagingService() {
                     title = title,
                     body = body,
                     priority = NotificationCompat.PRIORITY_DEFAULT,
-                    iconResId = DEFAULT_ICON_RES_ID,
-                    iconColor = DEFAULT_ICON_COLOR.toArgb(),
+                    // The icon and tint the app configured. Not read from the configuration object: this service can run in a
+                    // process started by the message itself, where initialize() has never been called and there is none.
+                    iconResId = NotificationAppearance.iconResId(context = applicationContext),
+                    iconColor = NotificationAppearance.iconColor(context = applicationContext),
                     deepLinkUri = deepLinkUri,
                     imageUrl = imageUrl,
                     groupKey = groupKey,

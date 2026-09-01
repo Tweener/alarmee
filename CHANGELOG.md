@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.7.1] - September 1, 2026
+- 🐛 **`[FIX]`**: 🤖 On Android, push notifications now use the `notificationIconResId` and `notificationIconColor` set on `AlarmeeAndroidPlatformConfiguration`. `AlarmeeFirebaseMessagingService` hardcoded Alarmee's own bundled icon and a transparent tint, so a remote message ignored the app's configuration entirely - local notifications were already honouring it. The configuration is remembered on `initialize()` (by resource NAME, since ids shift between builds) so it is still available when Firebase starts the app for a message and `initialize()` has not run.
+
 ## [2.7.0] - June 2, 2026
 - ✨ **`[FEATURE]`**: Added cross-platform notification grouping support via a new `groupKey` field on `Alarmee` to bundle related notifications (🤖 Android notification groups via `setGroup`, 🍎 iOS notification threads via `threadIdentifier`). Wired through all Android paths (immediate, scheduled, and FCM push) and iOS. Also added an Android-only `isGroupSummary` flag on `AndroidNotificationConfiguration` to mark a notification as the group summary. (Closes [#54](https://github.com/Tweener/alarmee/issues/54))
 - ✨ **`[FEATURE]`**: 🍎 On iOS, added public `PushNotificationServiceRegistry#notifyTokenUpdated()` and `notifyIncomingMessage()` methods so host apps can bridge `AppDelegate`/`MessagingDelegate` callbacks (new token & incoming message) without accessing internal classes. (PR [#53](https://github.com/Tweener/alarmee/pull/53))

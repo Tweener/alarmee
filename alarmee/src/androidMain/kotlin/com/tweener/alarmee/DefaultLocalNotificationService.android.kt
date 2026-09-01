@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
+import com.tweener.alarmee._internal.NotificationAppearance
 import com.tweener.alarmee._internal.applicationContext
 import com.tweener.alarmee.channel.NotificationChannelRegister
 import com.tweener.alarmee.configuration.AlarmeeAndroidPlatformConfiguration
@@ -40,6 +41,10 @@ private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 actual fun createLocalNotificationService(config: AlarmeePlatformConfiguration): LocalNotificationService {
     requirePlatformConfiguration(providedPlatformConfiguration = config, targetPlatformConfiguration = AlarmeeAndroidPlatformConfiguration::class)
     createNotificationChannels(config = config)
+
+    // Remembered here, where every initialization passes, so a push built in a process that never ran initialize() still wears the app's icon.
+    NotificationAppearance.remember(context = applicationContext, iconResId = config.notificationIconResId, iconColor = config.notificationIconColor.toArgb())
+
     return DefaultLocalNotificationService(config = config)
 }
 
