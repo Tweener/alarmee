@@ -80,6 +80,9 @@ kotlin {
     }
 }
 
+// Compose 1.12.2 fails web test runs on a target without an executable binary. This library has no web tests and ships no executable.
+tasks.matching { it.name.startsWith("checkComposeUiTestConfigurationFor") }.configureEach { enabled = false }
+
 // region Publishing
 
 group = ProjectConfiguration.Alarmee.Maven.group

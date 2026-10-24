@@ -1,17 +1,17 @@
 [versions]
-kotlin = "2.4.10"
-gradle = "9.1.1"
-composeMultiplatform = "1.12.0"
+kotlin = "2.4.21"
+gradle = "9.4.1"
+composeMultiplatform = "1.12.2"
 material3 = "1.9.0"
-dependencyVersionsPlugin = "0.61.0"
+dependencyVersionsPlugin = "0.66.0"
 mavenPublish = "0.37.0"
 dokka = "2.2.0"
 coroutines = "1.11.0"
 kmpKit = "1.0.14"
 androidActivity = "1.13.0"
-firebaseGitLiveApp = "2.5.0" # Firebase for KMP https://firebaseopensource.com/projects/gitliveapp/firebase-kotlin-sdk/ - kept in step with Passage: 2.6.0 moves to Firebase BoM 34, which dropped the -ktx artifacts
+firebaseGitLiveApp = "2.7.0" # Firebase for KMP https://firebaseopensource.com/projects/gitliveapp/firebase-kotlin-sdk/
 googleServicesPlugin = "4.5.0"
-firebaseBom = "33.15.0" # Firebase Android BoM used by GitLive firebaseGitLiveApp above
+firebaseBom = "35.1.0" # Firebase Android BoM used by GitLive firebaseGitLiveApp above
 androidStartup = "1.2.0"
 
 [libraries]
