@@ -24,9 +24,12 @@ internal class DefaultPushNotificationService(
     private val messageCallbacks = mutableListOf<(Map<String, String>) -> Unit>()
 
     override fun unregister() {
+        // Caught like the token reads below: this runs detached from the caller, so a refusal from
+        // Firebase (no APNs token on a simulator, no network) would otherwise crash the app.
         scope.launch {
-            Firebase.messaging.deleteToken()
-            println("Firebase push token deleted")
+            suspendCatching { Firebase.messaging.deleteToken() }
+                .onSuccess { println("Firebase push token deleted") }
+                .onFailure { throwable -> println("Error deleting Firebase token: $throwable") }
         }
     }
 
