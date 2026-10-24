@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.7.2] - October 24, 2026
+## [2.7.2] - October 25, 2026
 - 🐛 **`[FIX]`**: 🤖 On Android, a notification body longer than one line is no longer cut off with "...". Notifications without an image now use `BigTextStyle`, so expanding them shows the whole message, for local alarms and push notifications alike. Notifications with an image keep `BigPictureStyle`, which still shows the body on a single line.
 - 🐛 **`[FIX]`**: `PushNotificationService#unregister()` no longer crashes the app when Firebase refuses to delete the token (no APNs token on an iOS simulator, no network). The failure is now caught and logged.
 - 🔄 Update GitLive Firebase to 2.7.0 and the Firebase Android BoM to 35.1.0. Apps still depending on Firebase `-ktx` artifacts must migrate, as they are no longer part of the BoM.
