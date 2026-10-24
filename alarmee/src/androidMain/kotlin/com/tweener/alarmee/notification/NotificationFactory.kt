@@ -66,13 +66,15 @@ class NotificationFactory {
                         setGroupSummary(isGroupSummary)
                     }
 
-                    bitmap?.let {
-                        setLargeIcon(it)
+                    if (bitmap != null) {
+                        setLargeIcon(bitmap)
                         setStyle(
                             NotificationCompat.BigPictureStyle()
-                                .bigPicture(it)
+                                .bigPicture(bitmap)
                                 .bigLargeIcon(null as? Bitmap)
                         )
+                    } else {
+                        setStyle(NotificationCompat.BigTextStyle().bigText(body)) // Without a style, Android truncates the body to a single line
                     }
 
                     // Add action buttons (max 3 supported by Android)
