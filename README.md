@@ -1,7 +1,7 @@
 [![Maven Central Version](https://img.shields.io/maven-central/v/io.github.tweener/alarmee?color=orange)](https://central.sonatype.com/artifact/io.github.tweener/alarmee)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.4.10-blue.svg?logo=kotlin)](http://kotlinlang.org)
-[![Compose](https://img.shields.io/badge/compose-1.12.0-blue.svg?logo=jetpackcompose)](https://www.jetbrains.com/lp/compose-multiplatform)
-![gradle-version](https://img.shields.io/badge/gradle-9.1.1-blue?logo=gradle)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.4.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/compose-1.12.2-blue.svg?logo=jetpackcompose)](https://www.jetbrains.com/lp/compose-multiplatform)
+![gradle-version](https://img.shields.io/badge/gradle-9.4.1-blue?logo=gradle)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [![Website](https://img.shields.io/badge/Author-vivienmahe.com-purple)](https://vivienmahe.com/)
@@ -73,7 +73,7 @@ Open `libs.versions.toml`:
 
 ```Groovy
 [versions]
-alarmee = "2.4.0" // Check latest version
+alarmee = "2.7.2" // Check latest version
 
 [libraries]
 alarmee = { group = "io.github.tweener", name = "alarmee", version.ref = "alarmee" } // For local notifications only
@@ -97,7 +97,7 @@ dependencies {
 In your module `build.gradle.kts` add:
 ```Groovy
 dependencies {
-    val alarmee_version = "2.4.0" // Check latest version
+    val alarmee_version = "2.7.2" // Check latest version
 
     // Only one of these is needed, depending on your use case
     implementation("io.github.tweener:alarmee:$alarmee_version") // For local notifications only

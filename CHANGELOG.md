@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.7.2] - October 24, 2026
+- 🐛 **`[FIX]`**: 🤖 On Android, a notification body longer than one line is no longer cut off with "...". Notifications without an image now use `BigTextStyle`, so expanding them shows the whole message, for local alarms and push notifications alike. Notifications with an image keep `BigPictureStyle`, which still shows the body on a single line.
+- 🐛 **`[FIX]`**: `PushNotificationService#unregister()` no longer crashes the app when Firebase refuses to delete the token (no APNs token on an iOS simulator, no network). The failure is now caught and logged.
+- 🔄 Update GitLive Firebase to 2.7.0 and the Firebase Android BoM to 35.1.0. Apps still depending on Firebase `-ktx` artifacts must migrate, as they are no longer part of the BoM.
+- 🔄 Update Kotlin to 2.4.21.
+- 🔄 Update Compose Multiplatform to 1.12.2.
+- 🔄 Update Gradle to 9.6.0.
+- 🔄 Update Android Gradle Plugin to 9.4.1.
+- 🔄 Update Gradle Versions plugin to 0.66.0.
+
 ## [2.7.1] - September 1, 2026
 - 🐛 **`[FIX]`**: 🤖 On Android, push notifications now use the `notificationIconResId` and `notificationIconColor` set on `AlarmeeAndroidPlatformConfiguration`. `AlarmeeFirebaseMessagingService` hardcoded Alarmee's own bundled icon and a transparent tint, so a remote message ignored the app's configuration entirely - local notifications were already honouring it. The configuration is remembered on `initialize()` (by resource NAME, since ids shift between builds) so it is still available when Firebase starts the app for a message and `initialize()` has not run.
 - 🛠 **`[IMPROVEMENT]`**: 🤖 Migrated the Android side of both modules to the `com.android.kotlin.multiplatform.library` plugin, replacing the `com.android.library` + `androidTarget` pair. `androidResources` is enabled explicitly on `:alarmee`, which is what keeps the bundled `ic_notification` drawable in the published artifact.
