@@ -10,7 +10,7 @@ jobs:
       matrix:
         include:
           - target: iosSimulatorArm64Test
-            os: macos-14
+            os: macos-26
           - target: assembleAndroidMain
             os: ubuntu-latest
     runs-on: ${{ matrix.os }}
