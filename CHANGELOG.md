@@ -3,6 +3,7 @@
 ## [2.7.3] - November 25, 2026
 - 🔄 Update GitLive Firebase to 2.8.0.
 - 📦 **`[BUILD]`**: 🍎 GitLive 2.8.0 is built against firebase-ios-sdk 12.19, which requires iOS 15. Apps using `alarmee-push` must move their own Firebase iOS SDK to 12.19.0 or later in the same change, and target iOS 15.0 or later: keeping 11.x next to GitLive 2.8.0 crashes at launch.
+- 📦 **`[BUILD]`**: 🍎 `alarmee-push` now declares iOS 15.0 as its minimum deployment target (was 12.0), matching what firebase-ios-sdk 12 requires.
 
 ## [2.7.2] - October 25, 2026
 - 🐛 **`[FIX]`**: 🤖 On Android, a notification body longer than one line is no longer cut off with "...". Notifications without an image now use `BigTextStyle`, so expanding them shows the whole message, for local alarms and push notifications alike. Notifications with an image keep `BigPictureStyle`, which still shows the body on a single line.

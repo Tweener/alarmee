@@ -77,7 +77,7 @@ open sample/iosApp/iosApp.xcodeproj
 - **Kotlin**: 2.2.0
 - **Compose Multiplatform**: 1.8.2
 - **Android SDK**: Min 24, Compile 35
-- **iOS Deployment Target**: 12.0
+- **iOS Deployment Target**: 15.0 (`alarmee-push`)
 - **Java Compatibility**: VERSION_21
 
 ## Key Files

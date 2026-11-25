@@ -35,6 +35,6 @@ object ProjectConfiguration {
     }
 
     object iOS {
-        const val deploymentTarget = "12.0"
+        const val deploymentTarget = "15.0"
     }
 }
